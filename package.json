@@ -1,0 +1,63 @@
+{
+	"name": "custom-comment-syntax",
+	"displayName": "Custom comment syntax",
+	"publisher": "ArturoDent",
+	"description": "Create your comment syntax by language",
+	"version": "0.0.1",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/ArturoDent/custom-comment-syntax"
+	},
+	"engines": {
+		"vscode": "^1.52.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"keywords": [
+		"custom",
+		"comments",
+		"line comment",
+		"block comment"
+	],
+	"activationEvents": [
+    "onStartupFinished",
+		"onCommand:custom-comments.setNewCommentSyntax"
+	],
+	"main": "./src/extension.js",
+	"contributes": {
+		"configuration": {
+			"title": "Custom Comments",
+			"properties": {
+				"custom-comment-syntax": {
+					"type": "object",
+					"description": "Custom comment syntax, like `//*`.",
+					"markdownDescription": "Custom comment syntax, like `//*`."
+				}
+			}
+		},
+		"commands": [
+			{
+				"command": "custom-comments.setNewCommentSyntax",
+				"title": "Set new custom comment characters."
+			}
+		]
+	},
+	"scripts": {
+		"lint": "eslint .",
+		"pretest": "npm run lint",
+		"test": "node ./test/runTest.js"
+	},
+	"devDependencies": {
+		"@types/vscode": "^1.52.0",
+		"@types/glob": "^7.1.1",
+		"@types/mocha": "^7.0.2",
+		"@types/node": "^13.11.0",
+		"eslint": "^6.8.0",
+		"glob": "^7.1.6",
+		"mocha": "^7.1.2",
+		"typescript": "^3.8.3",
+		"vscode-test": "^1.3.0"
+	}
+}
