@@ -5,13 +5,18 @@ const path = require('path');
 /**
  * @description - from the language configuration for the current file
  * @description - get the value of config argument
- * 
+ *
  * @param {String} langID - the languageID of the desired language configuration
  * @param {String} config - the language configuration to get, e.g., 'comments.lineComment' or 'autoClosingPairs'
- * 
+ *
  * @returns {any} - string or array or null if can't be found
  */
 exports.get = function (langID, config) {
+
+  // const lineCommentString = languageConfigs.get('comments').lineComment;
+	// const currentLanguageConfig = languageConfigs.get('javascript', 'comments');
+	// const currentLanguageConfig = languageConfigs.get('javascript', '');
+	// const currentLanguageConfig = languageConfigs.get('javascript', 'comments.lineComment');
 
 	// if pass in no config ?
 	let configArg;
@@ -59,14 +64,14 @@ exports.get = function (langID, config) {
 		if (Array.isArray(configArg)) {
 
 			for (let index = 0; index < configArg.length; index++) {
-				desiredConfig = desiredConfig[configArg[index] ];				
+				desiredConfig = desiredConfig[configArg[index] ];
 			}
 			return desiredConfig;
 		}
 		// only one arg without a dot, like 'comments' passed in
 		else if (config) return JSON.parse(fs.readFileSync(langConfigFilePath).toString())[config];
 		else return desiredConfig;
-		
+
 		// desiredConfig = JSON.parse(fs.readFileSync(langConfigFilePath).toString())[`${config[0]}`][`${config[1]}`];
 		// desiredConfig = JSON.parse(fs.readFileSync(langConfigFilePath).toString())[`${config[0]}`];
 	}

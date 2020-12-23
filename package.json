@@ -3,7 +3,8 @@
 	"displayName": "Custom comment syntax",
 	"publisher": "ArturoDent",
 	"description": "Create your comment syntax by language",
-	"version": "0.0.1",
+	"version": "0.0.2",
+  "preview": true,
 	"license": "MIT",
 	"repository": {
 		"type": "git",
