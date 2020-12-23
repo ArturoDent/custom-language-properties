@@ -2,7 +2,7 @@ const vscode = require('vscode');
 
 
 exports.load = function () {
-  return vscode.workspace.getConfiguration('custom-comment-syntax');
+  return vscode.workspace.getConfiguration('custom-language-properties');
 };
 
 
@@ -44,7 +44,7 @@ exports.setConfig = function (settingConfigs, context, languageArray) {
         thisLanguageConfig[prop[0]] = prop[1];
       }
     }
-    disposable = vscode.languages.setLanguageConfiguration(
+    disposable = vscode.languages.setLanguageConfiguration (
       langID,
       thisLanguageConfig
     );

@@ -19,12 +19,12 @@ function activate(context) {
     if (typeof langObject[1] !== 'function') languageArray.push(langObject[0]);
   });
 
-	// loop through all languages that appear in the 'custom-comment-syntax' settings
+	// loop through all languages that appear in the 'custom-language-properties' settings
   if (languageArray.length) extSettings.setConfig(settingConfigs, context, languageArray);
 
   openIDs.addOpenFiles(openIDSet);
 
-  // just go to custom-comments setting ??
+  // just go to custom-language-properties setting ??
   // disposable = vscode.commands.registerCommand('custom-comments.setNewCommentSyntax', async function () {
 	// });
 	// context.subscriptions.push(disposable);
@@ -32,7 +32,7 @@ function activate(context) {
 	disposable = vscode.workspace.onDidChangeConfiguration(async event => {
 
     // including removal or commenting out or change
-		if (event.affectsConfiguration('custom-comment-syntax') ) {
+		if (event.affectsConfiguration('custom-language-properties') ) {
 
       languageArray = [];
       settingConfigs = extSettings.load();

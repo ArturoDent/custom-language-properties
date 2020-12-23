@@ -1,9 +1,9 @@
 {
-	"name": "custom-comment-syntax",
-	"displayName": "Custom comment syntax",
+	"name": "custom-language-syntax",
+	"displayName": "Custom Language Properties",
 	"publisher": "ArturoDent",
-	"description": "Create your comment syntax by language",
-	"version": "0.0.2",
+	"description": "Create your language properties",
+	"version": "0.0.3",
   "preview": true,
 	"license": "MIT",
 	"repository": {
@@ -18,32 +18,26 @@
 	],
 	"keywords": [
 		"custom",
+    "language",
 		"comments",
 		"line comment",
 		"block comment"
 	],
 	"activationEvents": [
-    "onStartupFinished",
-		"onCommand:custom-comments.setNewCommentSyntax"
+    "onStartupFinished"
 	],
 	"main": "./src/extension.js",
 	"contributes": {
 		"configuration": {
-			"title": "Custom Comments",
+			"title": "Custom Language Properties",
 			"properties": {
-				"custom-comment-syntax": {
+				"custom-language-properties": {
 					"type": "object",
-					"description": "Custom comment syntax, like `//*`.",
-					"markdownDescription": "Custom comment syntax, like `//*`."
+					"description": "Custom language syntax, like `//* `.",
+					"markdownDescription": "Custom language syntax, like `//* `."
 				}
 			}
-		},
-		"commands": [
-			{
-				"command": "custom-comments.setNewCommentSyntax",
-				"title": "Set new custom comment characters."
-			}
-		]
+		}
 	},
 	"scripts": {
 		"lint": "eslint .",
