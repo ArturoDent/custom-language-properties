@@ -1,60 +1,111 @@
 const vscode = require('vscode');
+const fs = require('fs');
+const path = require('path');
 
 
+/**
+ * @description - get theis extension's 'custom-language-properties' settings
+ * @returns - a vscode.WorkspaceConfiguration
+ */
 exports.load = function () {
   return vscode.workspace.getConfiguration('custom-language-properties');
 };
 
 
-exports.setConfig = function (settingConfigs, context, languageArray) {
+/**
+ * @description - setLanguageConfiguration() for the given languageID's
+ *
+ * @param {vscode.WorkspaceConfiguration} settingConfigs - this extension's settings
+ * @param {vscode.ExtensionContext} context
+ * @param {Set} languageSet - an array of languageID's
+ * @param {String} langID - a single languageID
+ */
+exports.setConfig = function (settingConfigs, context, languageSet, langID) {
 
   let disposable;
-  const configSet = new Set(['comments', 'brackets', 'indentationRules', 'onEnterRules', 'wordPattern']);
+  // const configSet = new Set(['comments', 'brackets', 'indentationRules', 'onEnterRules', 'wordPattern']);
+  const configSet = new Set(['comments', 'brackets']);
 
-  for (let index = 0; index < languageArray.length; index++) {
+  if (langID) {
+    languageSet.clear();
+    languageSet.add(langID);
+  }
 
-    const langID = languageArray[index];
-    let thisLanguageConfig = {};
+  languageSet.forEach(langID => {
+
+    const thisPath = path.join(context.extensionPath, 'languageConfigs', `${ langID }-language.json`);
+    let thisLanguageConfig = JSON.parse(fs.readFileSync(thisPath).toString());
+
+    for (const property in thisLanguageConfig) {
+      if (!configSet.has(property)) delete thisLanguageConfig[property];
+    }
 
     // The Object.entries() method returns an array of a given object's
     // own enumerable string-keyed property [key, value] pairs.
-    let langSettings = Object.entries(settingConfigs.get(langID));
+    // investigate hasOwnProperty() ***
+    let settings = Object.entries(settingConfigs).filter(setting => typeof setting[1] !== 'function');
 
-    // for (const prop of langSettings) {
-    for (let index = 0; index < langSettings.length; index++) {
-      const prop = langSettings[index];
+    // for (const prop in settings) {
+    for (let index = 0; index < settings.length; index++) {
 
-      // prop = "comments.lineComment" or "brackets.add" or "brackets.remove", etc.
-      // can you remove or only add?
-      if (prop[0].includes('.')) {
+      let entry = settings[index];
+      let found = entry[0].match(/^(?<lang>[^.]*)\./m);
 
-        let temp = prop[0].split('.');
+      if (!found || found.groups.lang !== langID) continue;
 
-        // filter for only brackets, comments, indentationRules, onEnterRules, and wordPattern
+      let prop = entry[0].replace(/^([^.]*)\./m, '');
+
+      // prop = "comments.lineComment"
+      if (prop.includes('.')) {
+
+        let temp = prop.split('.');
+
+        // need to set both comment:lineComment and blockComment, else it is deleted from the configuration!!
 
         if (temp.length === 2 && configSet.has(temp[0])) {
-          if (!Object.keys(thisLanguageConfig).includes(temp[0])) {
-            thisLanguageConfig[temp[0]] = {};  // comments are an object; brackets is an array; etc. for other properties
-          }
-          thisLanguageConfig[temp[0]][temp[1]] = prop[1];
+          thisLanguageConfig[temp[0]][temp[1]] = entry[1];
         }
       }
       // prop = "brackets[[]] or
       else if (configSet.has(prop[0])) {
-        thisLanguageConfig[prop[0]] = prop[1];
+        thisLanguageConfig[prop] = entry[1];
       }
     }
-    disposable = vscode.languages.setLanguageConfiguration (
+
+    disposable = vscode.languages.setLanguageConfiguration(
       langID,
       thisLanguageConfig
     );
 
     context.subscriptions.push(disposable);
-  }
+  })
 };
 
       // {
-      //   "comments": {
-      //     "blockComment": ["<#", "#>"],
-      //   }
+      //   comments: {
+      //     lineComment: "//********",
+      //     blockComment: [
+      //       "/*",
+      //       "*/"
+      //     ]
+      //   },
+      //   brackets: [
+      //     [
+      //       "{",
+      //       "}"
+      //     ],
+      //     [
+      //       "[",
+      //       "]"
+      //     ],
+      //     [
+      //       "(",
+      //       ")"
+      //     ]
+      //   ],
+      //   wordPattern: "(-?\\d*\\.\\d\\w*)|([^\\`\\~\\!\\@\\#\\%\\^\\&\\*\\(\\)\\-\\=\\+\\[\\{\\]\\}\\\\\\|\\;\\:\\'\\\"\\,\\.\\<\\>\\/\\?\\s]+)",
+      //   // indentationRules: {
+      //   //   increaseIndentPattern: "^((?!.*?\\/\\*).*\\*/)?\\s*[\\}\\]].*$",
+      //   //   decreaseIndentPattern: "^((?!\\/\\/).)*(\\{[^}\"'`]*|\\([^)\"'`]*|\\[[^\\]\"'`]*)$"
+      //   // }
       // }

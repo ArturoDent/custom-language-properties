@@ -2,13 +2,13 @@
 	"name": "custom-language-syntax",
 	"displayName": "Custom Language Properties",
 	"publisher": "ArturoDent",
-	"description": "Create your language properties",
-	"version": "0.0.3",
+	"description": "Create your custom language properties",
+	"version": "0.0.4",
   "preview": true,
 	"license": "MIT",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/ArturoDent/custom-comment-syntax"
+		"url": "https://github.com/ArturoDent/custom-language-properties"
 	},
 	"engines": {
 		"vscode": "^1.52.0"

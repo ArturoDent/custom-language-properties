@@ -1,0 +1,1 @@
+exports.json = {"comments.lineComment":"#","comments.blockComment":["\"\"\"","\"\"\""],"brackets":[["{","}"],["[","]"],["(",")"]]}

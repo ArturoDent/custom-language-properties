@@ -1,0 +1,1 @@
+{"comments.lineComment":"//","comments.blockComment":["/*","*/"],"brackets":[["{","}"],["[","]"],["(",")"]],"indentationRules.increaseIndentPattern":"^.*(\\bcase\\b.*:|\\bdefault\\b:|(\\b(func|if|else|switch|select|for|struct)\\b.*)?{[^}\"'`]*|\\([^)\"'`]*)$","indentationRules.decreaseIndentPattern":"^\\s*(\\bcase\\b.*:|\\bdefault\\b:|}[)}]*[),]?|\\)[,]?)$"}
