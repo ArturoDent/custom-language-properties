@@ -18,24 +18,22 @@ exports.load = function () {
  * @param {vscode.WorkspaceConfiguration} settingConfigs - this extension's settings
  * @param {vscode.ExtensionContext} context
  * @param {Set} languageSet - an array of languageID's
- * @param {String} langID - a single languageID
  */
-exports.setConfig = function (settingConfigs, context, languageSet, langID) {
+exports.setConfig = function (settingConfigs, context, languageSet) {
 
   let disposable;
   // const configSet = new Set(['comments', 'brackets', 'indentationRules', 'onEnterRules', 'wordPattern']);
   const configSet = new Set(['comments', 'brackets']);
 
-  if (langID) {
-    languageSet.clear();
-    languageSet.add(langID);
-  }
+  // if (langID) {
+  //   languageSet.clear();
+  //   languageSet.add(langID);
+  // }
 
   languageSet.forEach(langID => {
 
     const thisPath = path.join(context.extensionPath, 'languageConfigs', `${ langID }-language.json`);
-    let thisLanguageConfig = JSON.parse(fs.readFileSync(thisPath).toString());
-
+    let thisLanguageConfig = JSON.parse(fs.readFileSync(thisPath).toString()); // default language configuration
     for (const property in thisLanguageConfig) {
       if (!configSet.has(property)) delete thisLanguageConfig[property];
     }

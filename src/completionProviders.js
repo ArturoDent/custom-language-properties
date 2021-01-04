@@ -67,26 +67,25 @@ exports.makeSettingsCompletionProvider = function(extensionContext) {
 
           let completionArray = getCompletionItemsProperties(language, position, extensionContext);
 
-          // // filter - loop through all settings and that language's possible entries
           // let langConfigs;  // must be saved to appear in the get() !
-          // const langSettings = vscode.workspace.getConfiguration('custom-language-properties');
+          const langSettings = vscode.workspace.getConfiguration('custom-language-properties');
 
-          // if (langSettings) langConfigs = Object.keys(langSettings);  // can't do keys() on a null/undefined object
-          //                                                             // strip off languageID from config
-          // completionArray = completionArray.filter(property => !langConfigs.find(config => config === `${language}.${property.label}`));
-
+          // filter out already used prooperties, like 'comments.lineComment'
+          if (langSettings) {
+            const langConfigs = Object.keys(langSettings);  // can't do keys() on a null/undefined object
+            completionArray = completionArray.filter(property => !langConfigs.find(config => config === `${ language }.${ property.label }`));
+            return completionArray;
+          }
           return completionArray;
         }
 
         else if (context.triggerKind === vscode.CompletionTriggerKind.Invoke) {
           // need to look at linePrefix: '"javascript.' or '"javascript.' or '"' or '"javascript'
-          // if no dot, get langs (need to set a new range?)
-          // if a dot, get props (and reset range?)
           return getCompletionItemsNewLangs(position);
         }
       }
     },
-    ...['"', '.']    // trigger intellisense/completion
+    ...['"', '.']    // triggers for intellisense/completion
   );
 
   extensionContext.subscriptions.push(settingsCompletionProvider);
@@ -129,7 +128,9 @@ function getCompletionItemsProperties(langID, position, extensionContext) {
     const properties = require(langConfigPath);
 
     for (const property of Object.entries(properties)) {
-      completionItemArray.push(makeCompletionItem(property, position));
+      // filter out all but comments/brackets
+      if (property[0].replace(/^([^.]*)\..*/m, '$1') === 'comments' || property[0] === "brackets")
+            completionItemArray.push(makeCompletionItem(property, position));
     }
     return completionItemArray;
   }

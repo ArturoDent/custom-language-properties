@@ -3,7 +3,7 @@
 	"displayName": "Custom Language Properties",
 	"publisher": "ArturoDent",
 	"description": "Create your custom language properties",
-	"version": "0.0.4",
+	"version": "0.1.5",
   "preview": true,
 	"license": "MIT",
 	"repository": {
@@ -24,7 +24,9 @@
 		"block comment"
 	],
 	"activationEvents": [
-    "onStartupFinished"
+    "onStartupFinished",
+    "onCommand:custom-language-syntax.showConfigFile",
+    "onCommand:custom-language-syntax.transformConfigFile"
 	],
 	"main": "./src/extension.js",
 	"contributes": {
@@ -37,7 +39,17 @@
 					"markdownDescription": "Custom language syntax, like `//* `."
 				}
 			}
-		}
+		},
+    "commands":  [
+      {
+        "command": "custom-language-syntax.showConfigFile",
+        "title": "Show the language configuration file for the current editor"
+      },
+      {
+        "command": "custom-language-syntax.transformConfigFile",
+        "title": "Transform the current language configuration file for intellisense"
+      }
+    ]
 	},
 	"scripts": {
 		"lint": "eslint .",

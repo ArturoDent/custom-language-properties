@@ -56,7 +56,6 @@ exports.reduce = function (context) {
   for (const lang of configDir) {
     let fileObject = {};
     let langJSON = JSON.parse(fs.readFileSync(path.join(context.extensionPath, 'languageConfigs', lang)).toString());
-    console.log(langJSON);
 
     configSet.forEach(config => {
 
