@@ -3,6 +3,28 @@ const fs = require('fs');
 const path = require('path');
 
 
+exports.getLangIDsNotInExtension = async function (context) {
+
+  let missingLangs = [];
+
+  vscode.languages.getLanguages()
+    .then(array => {
+      console.log(array);
+      const langPath = path.join(context.extensionPath, 'languageConfigs');
+      const localLangConfigArray = fs.readdirSync(langPath, 'utf8');
+
+
+      // if (langIDArray.length > localLangConfigArray.length) {
+      // missingLangs = langIDArray.filter(langID => {
+      missingLangs = array.filter(langID => {
+        return !localLangConfigArray.includes(`${ langID }-language.json`);
+      });
+      console.log(missingLangs);
+      return missingLangs;
+    });
+}
+
+
 /**
  *
  * @param {vscode.ExtensionContext} context
@@ -18,35 +40,122 @@ exports.getLanguageConfigFiles = function (context) {
       _ext.packageJSON.contributes &&
       _ext.packageJSON.contributes.languages
     ) {
-      const packageLangID = _ext.packageJSON.contributes.languages[0].id;
+      // const packageLangID = _ext.packageJSON.contributes.languages[0].id;
+      const contributedLanguages = _ext.packageJSON.contributes.languages;  // an array
 
-      let skipLangs = ['jsonc', 'ignore', 'log', 'search-result'];
+      contributedLanguages.forEach((packageLang, index) => {
 
-      if (!skipLangs.includes(packageLangID)) {
+        // let skipLangs = ['jsonc', 'ignore', 'log', 'search-result'];
+        let skipLangs = ['log', 'Log', 'search-result', 'plaintext', 'scminput', 'properties', 'csv', 'tsv', 'excel'];
 
-        langConfigFilePath = path.join(
-          _ext.extensionPath,
-          _ext.packageJSON.contributes.languages[0].configuration
-        );
-        if (!!langConfigFilePath && fs.existsSync(langConfigFilePath)) {
+        if (!skipLangs.includes(packageLang.id) && _ext.packageJSON.contributes.languages[index].configuration) {
 
-          // the whole language config will be returned if config arg was the empty string ''
-          // desiredConfig = JSON.parse(fs.readFileSync(langConfigFilePath).toString());
+          langConfigFilePath = path.join(
+            _ext.extensionPath,
+            // _ext.packageJSON.contributes.languages[0].configuration
+            _ext.packageJSON.contributes.languages[index].configuration
+          );
+          if (!!langConfigFilePath && fs.existsSync(langConfigFilePath)) {
 
-          let destPath = path.join(context.extensionPath, 'languageConfigs', `${ packageLangID }-language.json`);
+            // the whole language config will be returned if config arg was the empty string ''
+            // desiredConfig = JSON.parse(fs.readFileSync(langConfigFilePath).toString());
 
-          fs.copyFileSync(langConfigFilePath, destPath);
+            let destPath = path.join(context.extensionPath, 'languageConfigs', `${ packageLang.id }-language.json`);
+
+            fs.copyFileSync(langConfigFilePath, destPath);
+          }
         }
-      }
+      });
     }
   }
 };
+
+exports.showLanguageConfigFile = async function (langConfigFilePath) {
+
+  // let langConfigFilePath;
+  for (const _ext of vscode.extensions.all) {
+  // All vscode default extensions ids starts with "vscode."
+    if (
+      _ext.id.startsWith("vscode.") &&
+      _ext.packageJSON.contributes &&
+      _ext.packageJSON.contributes.languages
+    ) {
+      // const packageLangID = _ext.packageJSON.contributes.languages[0].id;
+      const packageLang = _ext.packageJSON.contributes.languages;
+
+      packageLang.forEach(async (lang, index) => {
+
+        // if (packageLangID === vscode.window.activeTextEditor.document.languageId) {
+        if (lang.id === langConfigFilePath) {
+
+          let filePath = path.join(
+            _ext.extensionPath,
+            _ext.packageJSON.contributes.languages[index].configuration
+          );
+          if (!!langConfigFilePath && fs.existsSync(filePath)) {
+            await vscode.window.showTextDocument(vscode.Uri.file(filePath));
+            await vscode.commands.executeCommand('editor.action.formatDocument');
+            return;
+          }
+        }
+      });
+
+    }
+  }
+}
+
+exports.reduceFile = function (context, langID) {
+
+  // let langID = path.basename(path.dirname(vscode.window.activeTextEditor.document.fileName));
+
+    if (path.basename(vscode.window.activeTextEditor.document.fileName) !== "language-configuration.json") return;
+
+    let fullText = JSON.parse(vscode.window.activeTextEditor.document.getText());
+
+    const thisLanguagePath = path.join(context.extensionPath, 'languageConfigs', `${ langID }-language.json`);
+    fs.writeFileSync(thisLanguagePath, JSON.stringify(fullText));
+
+    const configSet = new Set(['comments', 'brackets', 'indentationRules', 'onEnterRules', 'wordPattern']);
+    let fileObject = {};
+
+    configSet.forEach(config => {
+
+      if (fullText[config]) {
+        switch (config) {
+          case 'comments':
+            if (fullText.comments.lineComment) fileObject['comments.lineComment'] = fullText.comments.lineComment;
+            if (fullText.comments.blockComment) fileObject['comments.blockComment'] = fullText.comments.blockComment;
+            break;
+          case 'brackets':
+            fileObject['brackets'] = fullText.brackets;
+            break;
+          case 'indentationRules':
+            if (fullText.indentationRules.increaseIndentPattern) fileObject['indentationRules.increaseIndentPattern'] = fullText.indentationRules.increaseIndentPattern;
+            if (fullText.indentationRules.decreaseIndentPattern) fileObject['indentationRules.decreaseIndentPattern'] = fullText.indentationRules.decreaseIndentPattern;
+            break;
+          case 'onEnterRules':
+            if (fullText.onEnterRules.action) fileObject['onEnterRules.action'] = fullText.onEnterRules.action;
+            if (fullText.onEnterRules.afterText) fileObject['onEnterRules.afterText'] = fullText.onEnterRules.afterText;
+            if (fullText.onEnterRules.beforeText) fileObject['onEnterRules.beforeText'] = fullText.onEnterRules.beforeText;
+            break;
+          case 'wordPattern':
+            fileObject['wordPattern'] = fullText.wordPattern;
+            break;
+
+          default:
+            break;
+        }
+      }
+    });
+  const configTargetPath = path.join(context.extensionPath, 'langProperties', `${langID}.json`);
+  fs.writeFileSync(configTargetPath, JSON.stringify(fileObject));
+}
 
 /**
  *
  * @param {vscode.ExtensionContext} context
  */
-exports.reduce = function (context) {
+exports.reduceFiles = function (context) {
 
   const configSet = new Set(['comments', 'brackets', 'indentationRules', 'onEnterRules', 'wordPattern']);
 

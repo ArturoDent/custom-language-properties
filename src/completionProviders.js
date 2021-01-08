@@ -70,7 +70,7 @@ exports.makeSettingsCompletionProvider = function(extensionContext) {
           // let langConfigs;  // must be saved to appear in the get() !
           const langSettings = vscode.workspace.getConfiguration('custom-language-properties');
 
-          // filter out already used prooperties, like 'comments.lineComment'
+          // filter out already used properties, like 'comments.lineComment'
           if (langSettings) {
             const langConfigs = Object.keys(langSettings);  // can't do keys() on a null/undefined object
             completionArray = completionArray.filter(property => !langConfigs.find(config => config === `${ language }.${ property.label }`));
