@@ -3,8 +3,8 @@
 	"displayName": "Custom Language Properties",
 	"publisher": "ArturoDent",
 	"description": "Create your custom language properties",
-	"version": "0.2.1",
-  "preview": true,
+	"version": "0.2.2",
+	"preview": true,
 	"license": "MIT",
 	"repository": {
 		"type": "git",
@@ -18,15 +18,15 @@
 	],
 	"keywords": [
 		"custom",
-    "language",
+		"language",
 		"comments",
 		"line comment",
 		"block comment"
 	],
 	"activationEvents": [
-    "onStartupFinished",
-    "onCommand:custom-language-syntax.showConfigFile",
-    "onCommand:custom-language-syntax.transformConfigFile"
+		"onStartupFinished",
+		"onCommand:custom-language-syntax.showConfigFile",
+		"onCommand:custom-language-syntax.transformConfigFile"
 	],
 	"main": "./src/extension.js",
 	"contributes": {
@@ -40,16 +40,16 @@
 				}
 			}
 		},
-    "commands":  [
-      {
-        "command": "custom-language-syntax.showConfigFile",
-        "title": "Show the language configuration file for the current editor"
-      },
-      {
-        "command": "custom-language-syntax.transformConfigFile",
-        "title": "Transform the current language configuration file for intellisense"
-      }
-    ]
+		"commands": [
+			{
+				"command": "custom-language-syntax.showConfigFile",
+				"title": "Show the language configuration file for the current editor"
+			},
+			{
+				"command": "custom-language-syntax.transformConfigFile",
+				"title": "Transform the current language configuration file for intellisense"
+			}
+		]
 	},
 	"scripts": {
 		"lint": "eslint .",
@@ -57,10 +57,10 @@
 		"test": "node ./test/runTest.js"
 	},
 	"devDependencies": {
-		"@types/vscode": "^1.52.0",
 		"@types/glob": "^7.1.1",
 		"@types/mocha": "^7.0.2",
-		"@types/node": "^13.11.0",
+		"@types/node": "^13.13.39",
+		"@types/vscode": "^1.52.0",
 		"eslint": "^6.8.0",
 		"glob": "^7.1.6",
 		"mocha": "^7.1.2",
