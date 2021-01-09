@@ -1,9 +1,9 @@
 {
-	"name": "custom-language-syntax",
+	"name": "custom-language-properties",
 	"displayName": "Custom Language Properties",
 	"publisher": "ArturoDent",
 	"description": "Create your custom language properties",
-	"version": "0.2.2",
+	"version": "0.2.3",
 	"preview": true,
 	"license": "MIT",
 	"repository": {
