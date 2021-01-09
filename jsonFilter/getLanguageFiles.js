@@ -13,9 +13,6 @@ exports.getLangIDsNotInExtension = async function (context) {
       const langPath = path.join(context.extensionPath, 'languageConfigs');
       const localLangConfigArray = fs.readdirSync(langPath, 'utf8');
 
-
-      // if (langIDArray.length > localLangConfigArray.length) {
-      // missingLangs = langIDArray.filter(langID => {
       missingLangs = array.filter(langID => {
         return !localLangConfigArray.includes(`${ langID }-language.json`);
       });
@@ -40,25 +37,21 @@ exports.getLanguageConfigFiles = function (context) {
       _ext.packageJSON.contributes &&
       _ext.packageJSON.contributes.languages
     ) {
-      // const packageLangID = _ext.packageJSON.contributes.languages[0].id;
       const contributedLanguages = _ext.packageJSON.contributes.languages;  // an array
 
       contributedLanguages.forEach((packageLang, index) => {
 
-        // let skipLangs = ['jsonc', 'ignore', 'log', 'search-result'];
         let skipLangs = ['log', 'Log', 'search-result', 'plaintext', 'scminput', 'properties', 'csv', 'tsv', 'excel'];
 
         if (!skipLangs.includes(packageLang.id) && _ext.packageJSON.contributes.languages[index].configuration) {
 
           langConfigFilePath = path.join(
             _ext.extensionPath,
-            // _ext.packageJSON.contributes.languages[0].configuration
             _ext.packageJSON.contributes.languages[index].configuration
           );
           if (!!langConfigFilePath && fs.existsSync(langConfigFilePath)) {
 
             // the whole language config will be returned if config arg was the empty string ''
-            // desiredConfig = JSON.parse(fs.readFileSync(langConfigFilePath).toString());
 
             let destPath = path.join(context.extensionPath, 'languageConfigs', `${ packageLang.id }-language.json`);
 
@@ -72,20 +65,17 @@ exports.getLanguageConfigFiles = function (context) {
 
 exports.showLanguageConfigFile = async function (langConfigFilePath) {
 
-  // let langConfigFilePath;
   for (const _ext of vscode.extensions.all) {
-  // All vscode default extensions ids starts with "vscode."
+    // all vscode default extensions ids starts with "vscode."
     if (
       _ext.id.startsWith("vscode.") &&
       _ext.packageJSON.contributes &&
       _ext.packageJSON.contributes.languages
     ) {
-      // const packageLangID = _ext.packageJSON.contributes.languages[0].id;
       const packageLang = _ext.packageJSON.contributes.languages;
 
       packageLang.forEach(async (lang, index) => {
 
-        // if (packageLangID === vscode.window.activeTextEditor.document.languageId) {
         if (lang.id === langConfigFilePath) {
 
           let filePath = path.join(
@@ -104,9 +94,15 @@ exports.showLanguageConfigFile = async function (langConfigFilePath) {
   }
 }
 
-exports.reduceFile = function (context, langID) {
 
-  // let langID = path.basename(path.dirname(vscode.window.activeTextEditor.document.fileName));
+/**
+ * @description - transform a single language-configuration.json file to 'comments.lineComment' form and
+ * @description - remove properties that can not be set
+ *
+ * @param {vscode.ExtensionContext} context
+ * @param {string} langID
+ */
+exports.reduceFile = function (context, langID) {
 
     if (path.basename(vscode.window.activeTextEditor.document.fileName) !== "language-configuration.json") return;
 
@@ -151,8 +147,10 @@ exports.reduceFile = function (context, langID) {
   fs.writeFileSync(configTargetPath, JSON.stringify(fileObject));
 }
 
+
 /**
- *
+ * @description - transform all language-configuration.json files to 'comments.lineComment' form and
+ * @description - remove properties that can not be set
  * @param {vscode.ExtensionContext} context
  */
 exports.reduceFiles = function (context) {

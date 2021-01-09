@@ -80,7 +80,6 @@ exports.makeSettingsCompletionProvider = function(extensionContext) {
         }
 
         else if (context.triggerKind === vscode.CompletionTriggerKind.Invoke) {
-          // need to look at linePrefix: '"javascript.' or '"javascript.' or '"' or '"javascript'
           return getCompletionItemsNewLangs(position);
         }
       }

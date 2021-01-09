@@ -28,7 +28,6 @@ exports.setConfig = function (settingConfigs, context, languageSet) {
   languageSet.forEach(langID => {
 
     const thisPath = path.join(context.extensionPath, 'languageConfigs', `${ langID }-language.json`);
-    // failed: ENOENT: no such file or directory, open 'c:\Users\Mark\custom-comments\languageConfigs\html-language.json'.
 
     if (!!thisPath && fs.existsSync(thisPath)) {
 
@@ -42,7 +41,6 @@ exports.setConfig = function (settingConfigs, context, languageSet) {
       // investigate hasOwnProperty() ***
       let settings = Object.entries(settingConfigs).filter(setting => typeof setting[1] !== 'function');
 
-      // for (const prop in settings) {
       for (let index = 0; index < settings.length; index++) {
 
         let entry = settings[index];
@@ -79,32 +77,3 @@ exports.setConfig = function (settingConfigs, context, languageSet) {
     // else // couldn't set config, languageConfigs/${ langID }-language.json doesn't exist
   })
 };
-
-      // {
-      //   comments: {
-      //     lineComment: "//********",
-      //     blockComment: [
-      //       "/*",
-      //       "*/"
-      //     ]
-      //   },
-      //   brackets: [
-      //     [
-      //       "{",
-      //       "}"
-      //     ],
-      //     [
-      //       "[",
-      //       "]"
-      //     ],
-      //     [
-      //       "(",
-      //       ")"
-      //     ]
-      //   ],
-      //   wordPattern: "(-?\\d*\\.\\d\\w*)|([^\\`\\~\\!\\@\\#\\%\\^\\&\\*\\(\\)\\-\\=\\+\\[\\{\\]\\}\\\\\\|\\;\\:\\'\\\"\\,\\.\\<\\>\\/\\?\\s]+)",
-      //   // indentationRules: {
-      //   //   increaseIndentPattern: "^((?!.*?\\/\\*).*\\*/)?\\s*[\\}\\]].*$",
-      //   //   decreaseIndentPattern: "^((?!\\/\\/).)*(\\{[^}\"'`]*|\\([^)\"'`]*|\\[[^\\]\"'`]*)$"
-      //   // }
-      // }
