@@ -44,14 +44,16 @@ exports.makeSettingsCompletionProvider = function(extensionContext) {
         // check that cursor position is within "custom-language-properties": { | }, i.e., within our setting
 
         const fullText = document.getText();
-        const regex = /(?<setting>"custom-language-properties"\s*:\s*{[\s\S]*?\s})/;  // our 'custom-language-properties' setting
+        // const regex = /(?<setting>"custom-language-properties"\s*:\s*{[\s\S]*?\s})/;  // our 'custom-language-properties' setting
+        const regex = /(?<setting>^[ \t]*"custom-language-properties"\s*:\s*{[\s\S]*?^\s*})/m;  // our 'custom-language-properties' setting
         const settingMatch = fullText.match(regex);
 
+        if (!settingMatch) return undefined;
         const startPos = document.positionAt(settingMatch.index);  // "custom-language-properties" index
         const endPos   = document.positionAt(settingMatch.index + settingMatch.groups.setting.length);
 
         const settingRange = new vscode.Range(startPos, endPos);
-        if (!settingRange.contains(position)) { return undefined; }  // not in the 'custom-language-properties' setting
+        if (!settingRange.contains(position)) return undefined;  // not in the 'custom-language-properties' setting
 
         if (context.triggerCharacter === '"') {
           return getCompletionItemsNewLangs(position);
@@ -144,12 +146,15 @@ function getCompletionItemsProperties(langID, position, extensionContext) {
  */
 function makeCompletionItem(key, position) {
 
-  let item;
+	// '    "java'
+	let item;
 
   // only from getCompletionItemsNewLangs() and trigger character '"'
   if (typeof key === 'string') {
-    item = new vscode.CompletionItem(key);
+    item = new vscode.CompletionItem(key, vscode.CompletionItemKind.Text);
     item.range = new vscode.Range(position, position);
+    // let numReplace = vscode.window.activeTextEditor.document.lineAt(position).text.replace(/^\s*"(\w*)/m, '$1').length;
+    // item.range = { inserting: new vscode.Range(position, position), replacing: new vscode.Range(new vscode.Position(position.number, position.character - numReplace + 1), position) };
   }
   else if (typeof key[1] === 'string') {
     item = new vscode.CompletionItem(key[0], vscode.CompletionItemKind.Value);
@@ -160,7 +165,8 @@ function makeCompletionItem(key, position) {
   else {  // Array.isArray(key[1]) === true, brackets/blockComment
     item = new vscode.CompletionItem(key[0], vscode.CompletionItemKind.Value);
     let keyStringified = JSON.stringify(key[1]);
-    item.range = { inserting: new vscode.Range(position, position), replacing: new vscode.Range(position, new vscode.Position(position.number, position.character + 1)) };
+    // item.range = { inserting: new vscode.Range(position, position), replacing: new vscode.Range(position, new vscode.Position(position.number, position.character + 1)) };
+    item.range = { inserting: new vscode.Range(position, position), replacing: new vscode.Range(position, new vscode.Position(position.line, position.character + 1)) };
     item.detail = `array : ${ keyStringified }`;
     item.insertText = `${key[0]}": ${ keyStringified }`;
   }

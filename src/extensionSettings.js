@@ -25,7 +25,7 @@ exports.setConfig = function (settingConfigs, context, languageSet) {
   // const configSet = new Set(['comments', 'brackets', 'indentationRules', 'onEnterRules', 'wordPattern']);
   const configSet = new Set(['comments', 'brackets']);
 
-  languageSet.forEach(langID => {
+  languageSet.forEach(async langID => {
 
     const thisPath = path.join(context.extensionPath, 'languageConfigs', `${ langID }-language.json`);
 
@@ -67,7 +67,7 @@ exports.setConfig = function (settingConfigs, context, languageSet) {
         }
       }
 
-      disposable = vscode.languages.setLanguageConfiguration(
+      disposable = await vscode.languages.setLanguageConfiguration(
         langID,
         thisLanguageConfig
       );

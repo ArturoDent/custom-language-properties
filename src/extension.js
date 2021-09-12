@@ -43,21 +43,27 @@ function activate(context) {
     providers.makeSettingsCompletionProvider(context);
   }
 
+  // ---------------------------------------------------------------------------------------------------------
+
   disposable = vscode.commands.registerCommand('custom-language-syntax.showConfigFile', async function () {
 
     makeFiles.showLanguageConfigFile(vscode.window.activeTextEditor.document.languageId);
 	});
   context.subscriptions.push(disposable);
 
-    disposable = vscode.commands.registerCommand('custom-language-syntax.transformConfigFile', function () {
+  // ---------------------------------------------------------------------------------------------------------
+
+  disposable = vscode.commands.registerCommand('custom-language-syntax.transformConfigFile', function () {
 
     // C:\Users\...\AppData\Local\Programs\Microsoft VS Code\resources\app\extensions\python\language-configuration.json
 
-      let langID = path.basename(path.dirname(vscode.window.activeTextEditor.document.fileName));
-
-      makeFiles.reduceFile(context, langID);
+    let langID = path.basename(path.dirname(vscode.window.activeTextEditor.document.fileName));
+    
+    makeFiles.reduceFile(context, langID);
 	});
 	context.subscriptions.push(disposable);
+
+  // ---------------------------------------------------------------------------------------------------------
 
 	disposable = vscode.workspace.onDidChangeConfiguration(async event => {
 
@@ -87,6 +93,7 @@ function activate(context) {
 	});
   context.subscriptions.push(disposable);
 
+  // ---------------------------------------------------------------------------------------------------------
 
   disposable = vscode.workspace.onDidOpenTextDocument(async event => {
 

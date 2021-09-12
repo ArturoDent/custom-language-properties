@@ -9,14 +9,14 @@ exports.getLangIDsNotInExtension = async function (context) {
 
   vscode.languages.getLanguages()
     .then(array => {
-      console.log(array);
+      // console.log(array);
       const langPath = path.join(context.extensionPath, 'languageConfigs');
       const localLangConfigArray = fs.readdirSync(langPath, 'utf8');
 
       missingLangs = array.filter(langID => {
         return !localLangConfigArray.includes(`${ langID }-language.json`);
       });
-      console.log(missingLangs);
+      // console.log(missingLangs);
       return missingLangs;
     });
 }
@@ -68,7 +68,7 @@ exports.showLanguageConfigFile = async function (langConfigFilePath) {
   for (const _ext of vscode.extensions.all) {
     // all vscode default extensions ids starts with "vscode."
     if (
-      _ext.id.startsWith("vscode.") &&
+      // _ext.id.startsWith("vscode.") &&
       _ext.packageJSON.contributes &&
       _ext.packageJSON.contributes.languages
     ) {
@@ -89,8 +89,8 @@ exports.showLanguageConfigFile = async function (langConfigFilePath) {
           }
         }
       });
-
     }
+    // TODO else { show notification message can't find a language-configuration.json file }
   }
 }
 
@@ -102,13 +102,21 @@ exports.showLanguageConfigFile = async function (langConfigFilePath) {
  * @param {vscode.ExtensionContext} context
  * @param {string} langID
  */
-exports.reduceFile = function (context, langID) {
+exports.reduceFile = async function (context, langID) {
 
-    if (path.basename(vscode.window.activeTextEditor.document.fileName) !== "language-configuration.json") return;
+  if (!path.basename(vscode.window.activeTextEditor.document.fileName).endsWith("language-configuration.json")) return;
 
-    let fullText = JSON.parse(vscode.window.activeTextEditor.document.getText());
+  const langIDArray = await vscode.languages.getLanguages();
+
+  if (!langIDArray.includes("langID")) {
+      // TODO: validateInput()  // is there one _ext.packageJSON.contributes.languages that includes 'ID'
+      const options = {prompt: `Enter the language ID here.  `};
+      await vscode.window.showInputBox(options).then(ID => langID = ID);
+    }
 
     const thisLanguagePath = path.join(context.extensionPath, 'languageConfigs', `${ langID }-language.json`);
+
+    let fullText = JSON.parse(vscode.window.activeTextEditor.document.getText());
     fs.writeFileSync(thisLanguagePath, JSON.stringify(fullText));
 
     const configSet = new Set(['comments', 'brackets', 'indentationRules', 'onEnterRules', 'wordPattern']);

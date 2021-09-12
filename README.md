@@ -101,7 +101,7 @@ With a language configuration file as the currentTextEditor (see previous comman
 
 ### This extension **must** have its own copy of the language configuration file for each languageID that you wish to use in the setting.   Here is the [list](./langIDs.md) of languageIDs that are supported out-of-the-box by this extension.  Other languages can be supported by following the two-step process mentioned above.
   
-  <br/>
+<br/>
 
 ----------------
 
@@ -129,6 +129,7 @@ With a language configuration file as the currentTextEditor (see previous comman
  &emsp;&emsp; - scraped and reduced all language configuration files in the default vscode setup    
 0.1.5 - added filters for comments/brackets and for already used properties in the setting    
 0.2.0 - `getLanguageConfigFiles()` changed to handle arrays of contributed languages  
+0.3.0 - added get input from user for unknown languages   
 
 
 
