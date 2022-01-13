@@ -76,6 +76,4 @@ exports.get = function (langID, config) {
 		// desiredConfig = JSON.parse(fs.readFileSync(langConfigFilePath).toString())[`${config[0]}`];
 	}
 	else return null;
-
-	// return desiredConfig;
 }

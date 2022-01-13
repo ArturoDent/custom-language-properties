@@ -3,7 +3,7 @@
 	"displayName": "Custom Language Properties",
 	"publisher": "ArturoDent",
 	"description": "Create your custom language properties",
-	"version": "0.3.0",
+	"version": "0.3.1",
 	"preview": true,
 	"license": "MIT",
 	"repository": {
@@ -29,6 +29,7 @@
 		"onCommand:custom-language-syntax.transformConfigFile"
 	],
 	"main": "./src/extension.js",
+	"browser": "./src/extension.js",
 	"contributes": {
 		"configuration": {
 			"title": "Custom Language Properties",
