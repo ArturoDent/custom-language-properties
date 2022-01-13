@@ -135,3 +135,5 @@ With a language configuration file as the currentTextEditor (see previous comman
 
 -----------------------------------------------------------------------------------------------------------    
 
+<input type="checkbox" checked> some checked text </input>   
+<input type="checkbox"> some unchecked text </input>
