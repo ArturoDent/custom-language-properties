@@ -143,7 +143,8 @@ With a language configuration file as the currentTextEditor (see previous comman
 <input type="checkbox"> some unchecked text    
 </div>  
 
-<span style="color:gray">~~strikethrough~~</span>  
+<span style="color:gray">~~strikethrough~~</span> 
 
 
-
+&#9744;  
+&#9745;
