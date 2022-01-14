@@ -147,4 +147,5 @@ With a language configuration file as the currentTextEditor (see previous comman
 
 
 &#9744;  
-&#9745;
+&#9745;  
+&#10004;
