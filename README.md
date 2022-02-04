@@ -103,6 +103,8 @@ With a language configuration file as the currentTextEditor (see previous comman
   
 <br/>
 
+> Note: There is a general setting `Editor > Comments: Insert Space` which, if enabled, will automatically add a space after your comment characters.  The default option for this setting is `disabled` though.  Just be aware that if you have that setting enabled a space will be added after whatever comment character(s) you set in this extension's settings.  
+
 ----------------
 
 ## TODO
@@ -129,27 +131,9 @@ With a language configuration file as the currentTextEditor (see previous comman
  &emsp;&emsp; - scraped and reduced all language configuration files in the default vscode setup    
 0.1.5 - added filters for comments/brackets and for already used properties in the setting    
 0.2.0 - `getLanguageConfigFiles()` changed to handle arrays of contributed languages  
-0.3.0 - added get input from user for unknown languages   
+0.3.0 - added get input from user for unknown languages  
+0.4.0 - added lisp (https://marketplace.visualstudio.com/items?itemName=mattn.Lisp) to supported languages    
 
 
 
 -----------------------------------------------------------------------------------------------------------    
-
-<div>  
-<input type="checkbox" checked> some checked text  
- </div>
-
- <div>   
-<input type="checkbox"> some unchecked text    
-</div>  
-
-<span style="color:gray">~~strikethrough~~</span> 
-
-
-&#9744;  
-&#9745;  
-&#10004;
-
-
-&check;  
-&cross;
