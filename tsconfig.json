@@ -1,17 +1,17 @@
 {
 	"compilerOptions": {
 		"module": "commonjs",
-		"target": "esnext",
-		"checkJs": true, /* Typecheck .js files. */
+		"noEmit": true,
+		"target": "ES2021",
+		"checkJs": true,
+		"allowJs": true,
 		"alwaysStrict": true,
 		"noImplicitAny": true,
 		"resolveJsonModule": true,
 		"strict": true,
 		"lib": [
-			"esnext"
+			"ES2021"
 		]
 	},
-	"exclude": [
-		"node_modules"
-	]
+	"exclude": ["node_modules"]
 }
