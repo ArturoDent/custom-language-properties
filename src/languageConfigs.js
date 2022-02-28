@@ -1,11 +1,11 @@
 const vscode = require('vscode');
+const jsonc = require('jsonc-parser');
 const fs = require('fs');
 const path = require('path');
 
 /**
- * @description - from the language configuration for the current file
- * @description - get the value of config argument
- *
+ * Fom the language configuration for the current file 
+ * get the value of config argument
  * @param {String} langID - the languageID of the desired language configuration
  * @param {String} config - the language configuration to get, e.g., 'comments.lineComment' or 'autoClosingPairs'
  *
@@ -13,10 +13,7 @@ const path = require('path');
  */
 exports.get = function (langID, config) {
 
-  // const lineCommentString = languageConfigs.get('comments').lineComment;
 	// const currentLanguageConfig = languageConfigs.get('javascript', 'comments');
-	// const currentLanguageConfig = languageConfigs.get('javascript', '');
-	// const currentLanguageConfig = languageConfigs.get('javascript', 'comments.lineComment');
 
 	// if pass in no config ?
 	let configArg;
@@ -26,15 +23,11 @@ exports.get = function (langID, config) {
 
 	let desiredConfig = null;  // return null default if can't be found
 
-	// for language of current editor
-	// const editor = vscode.window.activeTextEditor;
-	// const documentLanguageId = editor.document.languageId;
 	var langConfigFilePath = null;
 
 	for (const _ext of vscode.extensions.all) {
-		// All vscode default extensions ids starts with "vscode."
+		// All vscode default extensions ids starts with "vscode.": _ext.id.startsWith("vscode.")
 		if (
-			_ext.id.startsWith("vscode.") &&
 			_ext.packageJSON.contributes &&
 			_ext.packageJSON.contributes.languages
 		) {
@@ -59,7 +52,7 @@ exports.get = function (langID, config) {
 	if (!!langConfigFilePath && fs.existsSync(langConfigFilePath)) {
 
 		// the whole language config will be returned if config arg was the empty string ''
-    desiredConfig = JSON.parse(fs.readFileSync(langConfigFilePath).toString());
+    desiredConfig = jsonc.parse(fs.readFileSync(langConfigFilePath).toString());
 
 		if (Array.isArray(configArg)) {
 
@@ -69,11 +62,8 @@ exports.get = function (langID, config) {
 			return desiredConfig;
 		}
 		// only one arg without a dot, like 'comments' passed in
-		else if (config) return JSON.parse(fs.readFileSync(langConfigFilePath).toString())[config];
+		else if (config) return jsonc.parse(fs.readFileSync(langConfigFilePath).toString())[config];
 		else return desiredConfig;
-
-		// desiredConfig = JSON.parse(fs.readFileSync(langConfigFilePath).toString())[`${config[0]}`][`${config[1]}`];
-		// desiredConfig = JSON.parse(fs.readFileSync(langConfigFilePath).toString())[`${config[0]}`];
 	}
 	else return null;
 }

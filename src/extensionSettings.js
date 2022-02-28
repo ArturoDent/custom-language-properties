@@ -1,25 +1,27 @@
 const vscode = require('vscode');
 const fs = require('fs');
 const path = require('path');
+const jsonc = require('jsonc-parser');
+
 
 
 /**
- * @description - get theis extension's 'custom-language-properties' settings
+ * Get this extension's 'custom-language-properties' settings
  * @returns - a vscode.WorkspaceConfiguration
  */
-exports.load = function () {
-  return vscode.workspace.getConfiguration('custom-language-properties');
+exports.load = async function () {
+  return await vscode.workspace.getConfiguration('custom-language-properties');
 };
 
 
 /**
- * @description - setLanguageConfiguration() for the given languageID's
+ * SetLanguageConfiguration() for the given languageID's
  *
  * @param {vscode.WorkspaceConfiguration} settingConfigs - this extension's settings
  * @param {vscode.ExtensionContext} context
  * @param {Set} languageSet - an array of languageID's
  */
-exports.setConfig = function (settingConfigs, context, languageSet) {
+exports.setConfig = async function (settingConfigs, context, languageSet) {
 
   let disposable;
   // const configSet = new Set(['comments', 'brackets', 'indentationRules', 'onEnterRules', 'wordPattern']);
@@ -27,18 +29,17 @@ exports.setConfig = function (settingConfigs, context, languageSet) {
 
   languageSet.forEach(async langID => {
 
-    const thisPath = path.join(context.extensionPath, 'languageConfigs', `${ langID }-language.json`);
+    const thisPath = path.join(context.globalStorageUri.fsPath, 'languageConfigs', `${ langID }-language.json`);
 
     if (!!thisPath && fs.existsSync(thisPath)) {
 
-      let thisLanguageConfig = JSON.parse(fs.readFileSync(thisPath).toString()); // default language configuration
+      let thisLanguageConfig = jsonc.parse(fs.readFileSync(thisPath).toString()); // default language configuration
       for (const property in thisLanguageConfig) {
         if (!configSet.has(property)) delete thisLanguageConfig[property];
       }
 
       // The Object.entries() method returns an array of a given object's
       // own enumerable string-keyed property [key, value] pairs.
-      // investigate hasOwnProperty() ***
       let settings = Object.entries(settingConfigs).filter(setting => typeof setting[1] !== 'function');
 
       for (let index = 0; index < settings.length; index++) {

@@ -2,7 +2,7 @@
 
 This extension allows you to set your own language properties for the languages you use.  These properties include:
 
-* `comments, brackets` 
+* comments and  brackets 
 
 Not available yet: work continues on `indentationRules`, `onEnterRules`, and `wordPattern`.
 
@@ -33,7 +33,7 @@ For example, if you prefer your line comments to look like &nbsp; `// *  ` &nbsp
 
 Only these language configuration properties can be modified by this extension at this time: &emsp; `comments` and `brackets`
 
-[Because `indentationRules`, `onEnterRules`, and `wordPattern` use regexp values, I am continuing to work on adding those.  These three plus `comments` and `brackets` are all that will ever be settable through the vscode api.]
+[Because `indentationRules`, `onEnterRules`, and `wordPattern` use regexp values, I am continuing to work on adding those.]
 
 The built-in `vscode.languages.setLanguageConfiguration()` can only use the above settings.  Some other language configuration properties can be set in other ways:
 
@@ -46,7 +46,7 @@ The *default* values are shown where available in the completion suggestion pop-
 
 <br/> 
 
-* Tested with settings in the user `settings.json` only as of v0.2.0.
+* Tested with settings in the user `settings.json` only as of v0.5.0.
 
 ------------------
 
@@ -70,14 +70,15 @@ You **must** use vscode's language identifiers within the setting, like `csharp`
 
 <br/>
 
-Where appropriate, intellisense will suggest available language IDs and language properties (like `comments.lineComment`) relevant to each language.  As of v0.2.0, the work of scraping and modifying these language configuration files for each language has begun - see the list [here](./langIDs.md) of files that can be used in this extension's setting.   
+Where appropriate, intellisense will suggest available language IDs and language properties (like `comments.lineComment`) relevant to each language. 
 
-If you have added a language configuration other than those on the list mentioned above, you can   
+If you have added a language configuration extension **after the first time this extension is activated**, you will need to re-run the initialization step that finsd all language configuration extensions in your workspace and builds the necessary files in the extension's storage to enable intellisense in the settings.  
 
-1.  run the command `custom-language-syntax.showConfigFile` to see the current editor's language configuration file and then  
-2.  run the command `custom-language-syntax.transformConfigFile` to convert it for use with this setting.  You do not need to save any files, the required files will be automatically saved in the correect location.
+* Run the command `custom-language-syntax.rebuildConfigFiles` to find each installed language configuration extension and build the necessary files.  The required files will be automatically saved in the correct location.
 
-In addition, you should notify me through the github repository of the language and extension that provides that language's support so that I can incorporate those into future versions of this extension.  It is very possible that updates to this extension will require that the two-step manual process be re-run (I am looking into ways to automate the process.)
+If at any time you just want to see the language configuration file for the current editor's language, you can
+
+*  Run the command `custom-language-syntax.showConfigFile` to see the current editor's language configuration file and then  
 
 <br/>
 
@@ -85,54 +86,43 @@ Properties, like `comments.lineComment`  already used in the setting for a langu
 
 <br/>
 
-This extension contributes two commands:  
-
-* `custom-language-syntax.showConfigFile`: ***"Show the language configuration file for the current editor"***  
-
-Show the default language contribution file, if available, for the languageID of the current text editor.  
-
-<br />
-
-* `custom-language-syntax.transformConfigFile`: ***"Transform the current language configuration file for intellisense"***
-
-With a language configuration file as the currentTextEditor (see previous command), transform and save it into this extension's source files.  Those properties, like `folding markers` which cannot be set via `vscode.languages.setLanguageConfiguration()` will be removed and the other properties transformed into a form like `comments.lineComment` that will be used for intellisense in the `"custom-language-properties"` setting.  
-
-<br/>
-
-### This extension **must** have its own copy of the language configuration file for each languageID that you wish to use in the setting.   Here is the [list](./langIDs.md) of languageIDs that are supported out-of-the-box by this extension.  Other languages can be supported by following the two-step process mentioned above.
+### This extension **must** have its own copy of the language configuration file for each languageID that you wish to use in the setting.   If you are not getting intellisense in the `"custom-language-properties"` setting for a language's configuration propoerties, like `comments.lineComment` or `brackets` with their default values, run the `custom-language-syntax.rebuildConfigFiles`  mentioned above.  
   
 <br/>
 
-> Note: There is a general setting `Editor > Comments: Insert Space` which, if enabled, will automatically add a space after your comment characters.  The default option for this setting is `disabled` though.  Just be aware that if you have that setting enabled a space will be added after whatever comment character(s) you set in this extension's settings.  
+> Note: There is a general setting `Editor > Comments: Insert Space` which, if enabled, will automatically add a space after your comment characters.  The default option for this setting is `disabled`.  Just be aware that if you have that setting enabled a space will be added after whatever comment character(s) you set in this extension's settings.  
 
 ----------------
 
 ## TODO
 
-[ X ] - provide completions for language identifiers   
-[ X ] - provide completions for available properties in each language    
-[ X ] - scrape all default language configuration files and build `<langID>.json` files for completionProvider properties  
-[ X ] - fix resetting to defaults when settings removed  
-[ X ] - investigate getting settings (for the filters) of a dirty settings.json file, not returned by `getConfiguration()`      
-[&emsp; ] - make language file acquisition and reduction automatic for new languages on start-up   
-[&emsp; ] - investigate why `indentationRules`, `onEnterRules`, and `wordPattern` regex values are not working   
-[&emsp; ] - fix intellisense for partial completions in settings  
-[&emsp; ] - investigate local storage for config and intellisense files  
-[&emsp; ] - investigate combining the config and intellisense files so both do not need to be included  
+[ X ] - Provide completions for language identifiers.   
+[ X ] - Provide completions for available properties in each language.    
+[ X ] - Scrape all default language configuration files and build `<langID>.json` files for completionProvider properties.  
+[ X ] - Fix resetting to defaults when settings removed.  
+[ X ] - Investigate getting settings (for the filters) of a dirty settings.json file, not returned by `getConfiguration()`.      
+[ X ] - Make language file acquisition and reduction automatic for new languages on start-up.   
+[&emsp; ] - Investigate how to get `indentationRules`, `onEnterRules`, and `wordPattern` regex values working.   
+[&emsp; ] - Fix intellisense for partial completions in settings.  
+[ X ] - Investigate global storage for config and intellisense files.  
+ 
 
 <br/>
 
 ## Release Notes
 
-0.0.2 - added loading of each new config upon focusing a different file languageId    
-0.0.3 - name and setting change to `"custom-language-properties"`  
-0.0.4 - added completionProvider for all languageIds and each language's available properties  
-0.1.0 - fixed the completionProvider to not delete omitted properties   
- &emsp;&emsp; - scraped and reduced all language configuration files in the default vscode setup    
-0.1.5 - added filters for comments/brackets and for already used properties in the setting    
-0.2.0 - `getLanguageConfigFiles()` changed to handle arrays of contributed languages  
-0.3.0 - added get input from user for unknown languages  
-0.4.0 - added lisp (https://marketplace.visualstudio.com/items?itemName=mattn.Lisp) to supported languages    
+0.0.2 - Added loading of each new config upon focusing a different file languageId.    
+0.0.3 - Name and setting change to `"custom-language-properties"`.  
+0.0.4 - Added completionProvider for all languageIds and each language's available properties.  
+0.1.0 - Fixed the completionProvider to not delete omitted properties.   
+&emsp;&emsp;&emsp;Scraped and reduced all language configuration files in the default vscode setup.    
+0.1.5 - Added filters for comments/brackets and for already used properties in the setting.    
+0.2.0 - `getLanguageConfigFiles()` changed to handle arrays of contributed languages.  
+0.3.0 - Added get input from user for unknown languages.  
+0.4.0 - Added lisp (https://marketplace.visualstudio.com/items?itemName=mattn.Lisp) to supported languages.    
+0.5.0 - Simplified configuration file creation.   
+&emsp;&emsp;&emsp;Using `jsonc-parser` for configuration files.  
+&emsp;&emsp;&emsp;New command: `custom-language-syntax.rebuildConfigFiles`.  
 
 
 

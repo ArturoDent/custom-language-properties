@@ -1,11 +1,14 @@
 const vscode = require('vscode');
+const makeFiles = require('./getLanguageFiles');
+
 const fs = require('fs');
 const path = require('path');
+const jsonc = require('jsonc-parser');
 
 
 /**
- * @description - register a CompletionProvider for settings.json
- * @description - get either all languageIds or language configuration properties for a specific language
+ * Register a CompletionProvider for settings.json
+ * Get either all languageIds or language configuration properties for a specific language
  *
  * @param {vscode.ExtensionContext} extensionContext
  * @returns a CompletionProvider
@@ -23,53 +26,26 @@ exports.makeSettingsCompletionProvider = function(extensionContext) {
             //     "html.indentationRules.html": "^((?!\\/\\/).)*(\\{[^}\"'`]*|\\([^)\"'`}}}]*|\\[[^\\]\"'`]*)$"
             //  },
 
-        // get all text until the current `position` and check if it reads `` before the cursor
-        const linePrefix = document.lineAt(position).text.substr(0, position.character);
-        const linePrefix2 = document.lineAt(position).text.substr(0, position.character-1);
+        const rootNode = jsonc.parseTree(document.getText());
+        const curLocation = jsonc.getLocation(document.getText(), document.offsetAt(position));
+        const command = curLocation.path[0];
 
-        // do 2 regex'es by context.triggerCharacter
-        if (context.triggerCharacter === '"') {
-          let regex = /^\s*"/gm;
-          if (linePrefix.search(regex) === -1 || linePrefix.includes(':')) {
-            return undefined;
-          }
-        }
-        else if (context.triggerCharacter === '.') {
-          let regex = /^\s*"\w*\./gm;
-          if (linePrefix.search(regex) === -1 || linePrefix2.includes('.')) {
-            return undefined;
-          }
-        }
+        if (command !== 'custom-language-properties') return undefined;
 
-        // check that cursor position is within "custom-language-properties": { | }, i.e., within our setting
+        if (curLocation.isAtPropertyKey && context.triggerCharacter === '"') {
+          return _getCompletionItemsNewLangs(position);
+				}
+        else if (curLocation.isAtPropertyKey && context.triggerCharacter === '.') {
 
-        const fullText = document.getText();
-        // const regex = /(?<setting>"custom-language-properties"\s*:\s*{[\s\S]*?\s})/;  // our 'custom-language-properties' setting
-        const regex = /(?<setting>^[ \t]*"custom-language-properties"\s*:\s*{[\s\S]*?^\s*})/m;  // our 'custom-language-properties' setting
-        const settingMatch = fullText.match(regex);
-
-        if (!settingMatch) return undefined;
-        const startPos = document.positionAt(settingMatch.index);  // "custom-language-properties" index
-        const endPos   = document.positionAt(settingMatch.index + settingMatch.groups.setting.length);
-
-        const settingRange = new vscode.Range(startPos, endPos);
-        if (!settingRange.contains(position)) return undefined;  // not in the 'custom-language-properties' setting
-
-        if (context.triggerCharacter === '"') {
-          return getCompletionItemsNewLangs(position);
-        }
-        else if (context.triggerCharacter === '.') {
-          // "javascript.comments.lineComment": "//",
-          // "javascript.
-
+          // curLocation.path[1] = 'javascript.'
           // get the language (word at cursor)
           let langRange = vscode.window.activeTextEditor.document.getWordRangeAtPosition(position);
           let language = vscode.window.activeTextEditor.document.getText(langRange); // returns '"javascript."'
           language = language.substring(1, language.length - 2);
 
-          let completionArray = getCompletionItemsProperties(language, position, extensionContext);
+          let completionArray = _getCompletionItemsProperties(language, position, extensionContext);
 
-          // let langConfigs;  // must be saved to appear in the get() !
+          // must be saved to appear in the get() !
           const langSettings = vscode.workspace.getConfiguration('custom-language-properties');
 
           // filter out already used properties, like 'comments.lineComment'
@@ -79,10 +55,6 @@ exports.makeSettingsCompletionProvider = function(extensionContext) {
             return completionArray;
           }
           return completionArray;
-        }
-
-        else if (context.triggerKind === vscode.CompletionTriggerKind.Invoke) {
-          return getCompletionItemsNewLangs(position);
         }
       }
     },
@@ -94,15 +66,18 @@ exports.makeSettingsCompletionProvider = function(extensionContext) {
 
 
 /**
- * @description - get an array of all languageIDs
+ * Get an array of all languageIDs
  *
  * @param {vscode.Position} position
  * @returns - an array of vscode.CompletionItem's
  */
-async function getCompletionItemsNewLangs(position) {
+async function _getCompletionItemsNewLangs(position) {
 
   let completionItemArray = [];
-  const langIDArray = await vscode.languages.getLanguages();
+  let langIDArray = await vscode.languages.getLanguages();
+
+  const skipLangs = makeFiles.getLanguagesToSkip();
+  langIDArray = langIDArray.filter(lang => !skipLangs.includes(lang));
 
   for (const langID in langIDArray) {
     completionItemArray.push(makeCompletionItem(langIDArray[langID], position));
@@ -111,25 +86,28 @@ async function getCompletionItemsNewLangs(position) {
   return completionItemArray;
 }
 
+
 /**
- * @description - get all the lang config properties for a given language and
- * @description - make an array of vscode.CompletionItems's
+ * Get all the lang config properties for a given language and
+ * make an array of vscode.CompletionItems's
  *
  * @param {string} langID
  * @param {vscode.Position} position
  * @param {vscode.ExtensionContext} extensionContext
  * @returns - an array of vscode.CompletionItem's
  */
-function getCompletionItemsProperties(langID, position, extensionContext) {
+function _getCompletionItemsProperties(langID, position, context) {
 
   let completionItemArray = [];
-  const langConfigPath = path.join(extensionContext.extensionPath, 'langProperties', `${ langID }.json`);
+  // const langConfigPath = path.join(extensionContext.extensionPath, 'langProperties', `${ langID }.json`);
+  const langConfigPath = path.join(context.globalStorageUri.fsPath, 'languageProperties', `${ langID }.json`);
+
 
   if (fs.existsSync(langConfigPath)) {
     const properties = require(langConfigPath);
 
     for (const property of Object.entries(properties)) {
-      // filter out all but comments/brackets
+      // filter out aets
       if (property[0].replace(/^([^.]*)\..*/m, '$1') === 'comments' || property[0] === "brackets")
             completionItemArray.push(makeCompletionItem(property, position));
     }
@@ -138,7 +116,7 @@ function getCompletionItemsProperties(langID, position, extensionContext) {
 }
 
 /**
- * @description - from a string input make a CompletionItemKind.Text
+ * From a string input make a CompletionItemKind.Text
  *
  * @param {any} key
  * @param {object} position
@@ -149,7 +127,7 @@ function makeCompletionItem(key, position) {
 	// '    "java'
 	let item;
 
-  // only from getCompletionItemsNewLangs() and trigger character '"'
+  // only from _getCompletionItemsNewLangs() and trigger character '"'
   if (typeof key === 'string') {
     item = new vscode.CompletionItem(key, vscode.CompletionItemKind.Text);
     item.range = new vscode.Range(position, position);

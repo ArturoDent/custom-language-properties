@@ -1,1 +1,0 @@
-{"comments.lineComment":"//","comments.blockComment":["/*","*/"],"brackets":[["{","}"],["[","]"],["(",")"]],"indentationRules.increaseIndentPattern":"^.*\\{[^}\"']*$|^.*\\([^\\)\"']*$","indentationRules.decreaseIndentPattern":"^\\s*(\\s*\\/[*].*[*]\\/\\s*)*[})]"}
