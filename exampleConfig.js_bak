@@ -45,3 +45,6 @@ vscode.languages.setLanguageConfiguration(
              }, 
          ], 
      }); 
+     
+     
+     "{\r\n    \"javascript.comments.lineComment\": \"// *\",\r\n    \"javascript.comments.blockComment\": [\"/*\",\"*/\"],\r\n    \"javascript.\"\r\n\t\t\"cpp.brackets\": [[\"{\",\"}\"],[\"[\",\"]\"],[\"(\",\")\"],[\"<\",\">\"]]\r\n  }"

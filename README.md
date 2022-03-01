@@ -123,6 +123,7 @@ Properties, like `comments.lineComment`  already used in the setting for a langu
 0.5.0 - Simplified configuration file creation.   
 &emsp;&emsp;&emsp;Using `jsonc-parser` for configuration files.  
 &emsp;&emsp;&emsp;New command: `custom-language-syntax.rebuildConfigFiles`.  
+&emsp;&emsp;&emsp;0.5.2 - Better intellisense.  Refactor getting settings and setting configurations.   
 
 
 

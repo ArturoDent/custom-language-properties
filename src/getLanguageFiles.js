@@ -17,27 +17,24 @@ exports.getLanguageConfigFiles = async function (context, extConfigDirectory) {
 
   for (const _ext of vscode.extensions.all) {
     // All vscode default extensions ids starts with "vscode.": _ext.id.startsWith("vscode.")
-    if (
-      _ext.packageJSON.contributes &&
-      _ext.packageJSON.contributes.languages
-    ) {
+    if (_ext.packageJSON.contributes && _ext.packageJSON.contributes.languages) {
+      
       const contributedLanguages = _ext.packageJSON.contributes.languages;  // may be an array
 
-      contributedLanguages.forEach((packageLang, index) => {
+      contributedLanguages.forEach((/** @type {{ id: string; }} */ packageLang, /** @type {number} */ index) => {
 
-        let skipLangs = getLanguagesToSkip();
+        // "languages" to skip, like plaintext, etc. = no configuration properties that we are interested in
+        let skipLangs = _getLanguagesToSkip();
 
-        if (!skipLangs.includes(packageLang.id) && _ext.packageJSON.contributes.languages[index].configuration) {
+        if (!skipLangs?.includes(packageLang.id) && _ext.packageJSON.contributes.languages[index].configuration) {
 
           langConfigFilePath = path.join(
             _ext.extensionPath,
             _ext.packageJSON.contributes.languages[index].configuration
           );
+          
           if (!!langConfigFilePath && fs.existsSync(langConfigFilePath)) {
-
             const thisConfig = JSON.stringify(jsonc.parse(fs.readFileSync(langConfigFilePath).toString()));
-            // * const thisConfig = JSON.stringify(require(langConfigFilePath));  
-
             const destPath = path.join(extConfigDirectory, `${ packageLang.id }-language.json`);
             fs.writeFileSync(destPath, thisConfig, { flag:'w' });
           }
@@ -49,21 +46,17 @@ exports.getLanguageConfigFiles = async function (context, extConfigDirectory) {
 
 
 /**
- * 
- * @param {string} langConfigFilePath 
+ * SHow the language configuration file for the current editor
+ * @param {string} langConfigFilePath - vscode.window.activeTextEditor.document.languageId
  */
 exports.showLanguageConfigFile = async function (langConfigFilePath) {
 
   for (const _ext of vscode.extensions.all) {
-    // all vscode default extensions ids starts with "vscode."
-    if (
-      // _ext.id.startsWith("vscode.") &&
-      _ext.packageJSON.contributes &&
-      _ext.packageJSON.contributes.languages
-    ) {
-      const packageLang = _ext.packageJSON.contributes.languages;
+    if (_ext.packageJSON.contributes && _ext.packageJSON.contributes.languages) {
+      
+      const packageLang = _ext.packageJSON.contributes.languages; // could be an array
 
-      packageLang.forEach(async (lang, index) => {
+      packageLang.forEach(async (/** @type {{ id: string; }} */ lang, /** @type {number} */ index) => {
 
         if (lang.id === langConfigFilePath) {
 
@@ -86,7 +79,8 @@ exports.showLanguageConfigFile = async function (langConfigFilePath) {
 
 /**
  * Transform all language-configuration.json files to 'comments.lineComment' form and 
- * remove properties that can not be currently set
+ * remove properties that can not be currently set.
+ * 
  * @param {vscode.ExtensionContext} context
  * @param {string} extConfigDirectory -
  * @param {string} extLangPropDirectory -
@@ -96,11 +90,13 @@ exports.reduceFiles = async function (context, extConfigDirectory, extLangPropDi
   if (!fs.existsSync(extLangPropDirectory)) fs.mkdirSync(extLangPropDirectory,{ recursive: true });
 
   const configSet = new Set(['comments', 'brackets', 'indentationRules', 'onEnterRules', 'wordPattern']);
-
   const configDir = fs.readdirSync(extConfigDirectory, 'utf8');
 
   for (const lang of configDir) {
+    
+    /** @type  {Object<string, string>}*/
     let fileObject = {};
+    
     let langJSON = require(path.join(extConfigDirectory, lang));
 
     configSet.forEach(config => {
@@ -141,10 +137,10 @@ exports.reduceFiles = async function (context, extConfigDirectory, extLangPropDi
 
 /**
  * These "languages" will not be indexed for their properties 
- * because they do not have comments, for example.
+ * because they do not have comments or other applicable properties.
  * @returns {string[]}
  */
- exports.getLanguagesToSkip = function () {
+function _getLanguagesToSkip  () {
   return ['log', 'Log', 'search-result', 'plaintext', 'scminput', 'properties', 'csv', 'tsv', 'excel'];
 }
 

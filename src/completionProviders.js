@@ -1,6 +1,4 @@
 const vscode = require('vscode');
-const makeFiles = require('./getLanguageFiles');
-
 const fs = require('fs');
 const path = require('path');
 const jsonc = require('jsonc-parser');
@@ -25,33 +23,49 @@ exports.makeSettingsCompletionProvider = function(extensionContext) {
             //     "javascript.indentationRules.javascript": "^}}((?!\\/\\/).)*(\\{[^}\"'`]*|\\([^)\"'`}}}]*|\\[[^\\]\"'`]*)$",
             //     "html.indentationRules.html": "^((?!\\/\\/).)*(\\{[^}\"'`]*|\\([^)\"'`}}}]*|\\[[^\\]\"'`]*)$"
             //  },
-
-        const rootNode = jsonc.parseTree(document.getText());
+        
+        if (!vscode.window.activeTextEditor) return undefined;
+        
         const curLocation = jsonc.getLocation(document.getText(), document.offsetAt(position));
         const command = curLocation.path[0];
+        if (command !== 'custom-language-properties') return undefined;        
 
-        if (command !== 'custom-language-properties') return undefined;
-
-        if (curLocation.isAtPropertyKey && context.triggerCharacter === '"') {
-          return _getCompletionItemsNewLangs(position);
-				}
-        else if (curLocation.isAtPropertyKey && context.triggerCharacter === '.') {
+				const linePrefix = document.lineAt(position).text.substring(0, position.character);
+        
+        if (curLocation.isAtPropertyKey && linePrefix.endsWith('"')) return _getCompletionItemsNewLangs(position);
+        
+        else if (curLocation.isAtPropertyKey && linePrefix.endsWith('.')) {
+          
+          let language = "";
+          let langNode;
+          let args = "";
+          let /** @type {string[]} */ found = [];
 
           // curLocation.path[1] = 'javascript.'
-          // get the language (word at cursor)
-          let langRange = vscode.window.activeTextEditor.document.getWordRangeAtPosition(position);
-          let language = vscode.window.activeTextEditor.document.getText(langRange); // returns '"javascript."'
-          language = language.substring(1, language.length - 2);
+          if (curLocation.path && curLocation.path[1].toString().endsWith('.')) {
+            language = curLocation.path[1].toString();
+            language = language.substring(0, language.length - 1);
+          }
+          else return undefined;
 
           let completionArray = _getCompletionItemsProperties(language, position, extensionContext);
 
-          // must be saved to appear in the get() !
-          const langSettings = vscode.workspace.getConfiguration('custom-language-properties');
+          const rootNode = jsonc.parseTree(document.getText());       
+          if (rootNode) langNode = jsonc.findNodeAtLocation(rootNode, ['custom-language-properties']);
+          else return completionArray;
+          
+          if (langNode) {
+            args = document.getText(new vscode.Range(document.positionAt(langNode?.offset),
+              document.positionAt(langNode?.offset + langNode.length)));
+            // @ts-ignore
+            found = [...args.matchAll(/^\s*"(?<prop>[^"]+)/gm)];
+          }
 
-          // filter out already used properties, like 'comments.lineComment'
-          if (langSettings) {
-            const langConfigs = Object.keys(langSettings);  // can't do keys() on a null/undefined object
-            completionArray = completionArray.filter(property => !langConfigs.find(config => config === `${ language }.${ property.label }`));
+          // filter out already used properties, even if not saved, like 'comments.lineComment'
+
+          if (found && completionArray) {
+            completionArray = completionArray.filter(property => !found.find(config =>
+              config[1] === `${ language }.${ property.label }`));
             return completionArray;
           }
           return completionArray;
@@ -76,7 +90,7 @@ async function _getCompletionItemsNewLangs(position) {
   let completionItemArray = [];
   let langIDArray = await vscode.languages.getLanguages();
 
-  const skipLangs = makeFiles.getLanguagesToSkip();
+  const skipLangs = _getLanguagesToSkip();
   langIDArray = langIDArray.filter(lang => !skipLangs.includes(lang));
 
   for (const langID in langIDArray) {
@@ -93,21 +107,19 @@ async function _getCompletionItemsNewLangs(position) {
  *
  * @param {string} langID
  * @param {vscode.Position} position
- * @param {vscode.ExtensionContext} extensionContext
+ * @param {vscode.ExtensionContext} context
  * @returns - an array of vscode.CompletionItem's
  */
 function _getCompletionItemsProperties(langID, position, context) {
 
   let completionItemArray = [];
-  // const langConfigPath = path.join(extensionContext.extensionPath, 'langProperties', `${ langID }.json`);
   const langConfigPath = path.join(context.globalStorageUri.fsPath, 'languageProperties', `${ langID }.json`);
-
 
   if (fs.existsSync(langConfigPath)) {
     const properties = require(langConfigPath);
 
     for (const property of Object.entries(properties)) {
-      // filter out aets
+      // filter out anything but comments or brackets here
       if (property[0].replace(/^([^.]*)\..*/m, '$1') === 'comments' || property[0] === "brackets")
             completionItemArray.push(makeCompletionItem(property, position));
     }
@@ -118,21 +130,18 @@ function _getCompletionItemsProperties(langID, position, context) {
 /**
  * From a string input make a CompletionItemKind.Text
  *
- * @param {any} key
- * @param {object} position
+ * @param {string|Array<string>} key
+ * @param {vscode.Position} position
  * @returns - CompletionItemKind.Text
  */
 function makeCompletionItem(key, position) {
 
-	// '    "java'
 	let item;
 
   // only from _getCompletionItemsNewLangs() and trigger character '"'
   if (typeof key === 'string') {
     item = new vscode.CompletionItem(key, vscode.CompletionItemKind.Text);
     item.range = new vscode.Range(position, position);
-    // let numReplace = vscode.window.activeTextEditor.document.lineAt(position).text.replace(/^\s*"(\w*)/m, '$1').length;
-    // item.range = { inserting: new vscode.Range(position, position), replacing: new vscode.Range(new vscode.Position(position.number, position.character - numReplace + 1), position) };
   }
   else if (typeof key[1] === 'string') {
     item = new vscode.CompletionItem(key[0], vscode.CompletionItemKind.Value);
@@ -143,7 +152,6 @@ function makeCompletionItem(key, position) {
   else {  // Array.isArray(key[1]) === true, brackets/blockComment
     item = new vscode.CompletionItem(key[0], vscode.CompletionItemKind.Value);
     let keyStringified = JSON.stringify(key[1]);
-    // item.range = { inserting: new vscode.Range(position, position), replacing: new vscode.Range(position, new vscode.Position(position.number, position.character + 1)) };
     item.range = { inserting: new vscode.Range(position, position), replacing: new vscode.Range(position, new vscode.Position(position.line, position.character + 1)) };
     item.detail = `array : ${ keyStringified }`;
     item.insertText = `${key[0]}": ${ keyStringified }`;
@@ -151,6 +159,20 @@ function makeCompletionItem(key, position) {
   return item;
 }
 
+/**
+ * These "languages" will not be indexed for their properties 
+ * because they do not have comments, for example.
+ * @returns {string[]}
+ */
+function _getLanguagesToSkip  () {
+  return ['log', 'Log', 'search-result', 'plaintext', 'scminput', 'properties', 'csv', 'tsv', 'excel'];
+}
+
+/**
+ * Escape certain values.
+ * @param {string} value 
+ * @returns {string}
+ */
 function escape2(value) {
   if (typeof(value) !== "string") return value;
     return value
