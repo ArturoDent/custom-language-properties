@@ -6,7 +6,6 @@ const makeFiles = require('./getLanguageFiles');
 const fs = require('fs');
 const path = require('path');
 
-
 /**
  * @param {vscode.ExtensionContext} context
  */
@@ -27,6 +26,7 @@ async function activate(context) {
   // ---------------------------------------------------------------------------------------------------------
 
   let disposable = vscode.commands.registerCommand('custom-language-syntax.showConfigFile', async function () {
+    
     if (vscode.window.activeTextEditor) 
       makeFiles.showLanguageConfigFile(vscode.window.activeTextEditor.document.languageId);
 	});
