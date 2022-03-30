@@ -3,7 +3,7 @@
 	"displayName": "Custom Language Properties",
 	"publisher": "ArturoDent",
 	"description": "Create your custom language properties",
-	"version": "0.5.3",
+	"version": "0.5.4",
 	"preview": true,
 	"license": "MIT",
 	"repository": {
@@ -14,8 +14,8 @@
 		"vscode": "^1.52.0"
 	},
   "extensionKind": [
-    "workspace",
-    "ui"
+    "ui",
+    "workspace"
   ],
 	"categories": [
 		"Other"
