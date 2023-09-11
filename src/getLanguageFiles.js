@@ -16,7 +16,7 @@ exports.getLanguageConfigFiles = async function (context, extConfigDirectory) {
   let langConfigFilePath = null;
 
   for (const _ext of vscode.extensions.all) {
-    // All vscode default extensions ids starts with "vscode.": _ext.id.startsWith("vscode.")
+    
     if (_ext.packageJSON.contributes && _ext.packageJSON.contributes.languages) {
       
       const contributedLanguages = _ext.packageJSON.contributes.languages;  // may be an array
@@ -42,6 +42,54 @@ exports.getLanguageConfigFiles = async function (context, extConfigDirectory) {
       });
     }
   }
+};
+
+/**
+ * @param {string} langID - 
+ */
+exports.getLanguageConfigFile = async function (langID) {
+
+  let thisConfig = {};
+  let langConfigFilePath = null;
+
+  for (let i = 0; i < vscode.extensions.all.length; i++) {
+
+    let _ext = vscode.extensions.all[i];
+
+    if (_ext.packageJSON.contributes && _ext.packageJSON.contributes.languages) {
+
+      const contributedLanguages = _ext.packageJSON.contributes.languages;  // may be an array
+
+      for (let j = 0; j < contributedLanguages.length; j++) {
+
+        let packageLang = contributedLanguages[j];
+
+        if (packageLang.id === langID) {
+
+          // "languages" to skip, like plaintext, etc. = no configuration properties that we are interested in
+          let skipLangs = _getLanguagesToSkip();
+
+          // if (!skipLangs?.includes(packageLang.id) && _ext.packageJSON.contributes.languages[index].configuration) {
+          if (!skipLangs?.includes(packageLang.id) && _ext.packageJSON.contributes.languages[j].configuration) {
+
+
+            langConfigFilePath = path.join(
+              _ext.extensionPath,
+              // _ext.packageJSON.contributes.languages[index].configuration
+              _ext.packageJSON.contributes.languages[j].configuration
+
+            );
+
+            if (!!langConfigFilePath && fs.existsSync(langConfigFilePath)) {
+              thisConfig = jsonc.parse(fs.readFileSync(langConfigFilePath).toString());
+              return thisConfig;
+            }
+          }
+        }
+      }
+    }
+  }
+  return thisConfig;
 };
 
 
@@ -89,7 +137,8 @@ exports.reduceFiles = async function (context, extConfigDirectory, extLangPropDi
 
   if (!fs.existsSync(extLangPropDirectory)) fs.mkdirSync(extLangPropDirectory,{ recursive: true });
 
-  const configSet = new Set(['comments', 'brackets', 'indentationRules', 'onEnterRules', 'wordPattern']);
+  // const configSet = new Set(['comments', 'brackets', 'indentationRules', 'onEnterRules', 'wordPattern']);
+  const configSet = new Set(['comments', 'brackets', 'indentationRules', 'onEnterRules', 'wordPattern', 'autoClosingPairs']);
   const configDir = fs.readdirSync(extConfigDirectory, 'utf8');
 
   for (const lang of configDir) {
@@ -121,6 +170,22 @@ exports.reduceFiles = async function (context, extConfigDirectory, extLangPropDi
             break;
           case 'wordPattern':
             fileObject['wordPattern'] = langJSON.wordPattern;
+            break;
+
+            // TODO add autoClosingPairs from proposed api
+          case 'autoClosingPairs':
+            // {
+            //   "open": "{",
+            //   "close": "}"
+            // },
+            // {
+            //   "open": "<",
+            //   "close": ">",
+            //   "notIn": [
+            //     "string"
+            //   ]
+            // }
+            fileObject['autoClosingPairs'] = langJSON.autoClosingPairs;
             break;
 
           default:

@@ -32,7 +32,7 @@ exports.makeSettingsCompletionProvider = function(extensionContext) {
 
 				const linePrefix = document.lineAt(position).text.substring(0, position.character);
         
-        if (curLocation.isAtPropertyKey && linePrefix.endsWith('"')) return _getCompletionItemsNewLangs(position);
+        if (curLocation.isAtPropertyKey && linePrefix.endsWith('"')) return _getCompletionItemsNewLangs();
         
         else if (curLocation.isAtPropertyKey && linePrefix.endsWith('.')) {
           
@@ -50,7 +50,7 @@ exports.makeSettingsCompletionProvider = function(extensionContext) {
 
           let completionArray = _getCompletionItemsProperties(language, position, extensionContext);
 
-          const rootNode = jsonc.parseTree(document.getText());       
+          const rootNode = jsonc.parseTree(document.getText());  
           if (rootNode) langNode = jsonc.findNodeAtLocation(rootNode, ['custom-language-properties']);
           else return completionArray;
           
@@ -82,22 +82,16 @@ exports.makeSettingsCompletionProvider = function(extensionContext) {
 /**
  * Get an array of all languageIDs
  *
- * @param {vscode.Position} position
  * @returns - an array of vscode.CompletionItem's
  */
-async function _getCompletionItemsNewLangs(position) {
+async function _getCompletionItemsNewLangs() {
 
-  let completionItemArray = [];
   let langIDArray = await vscode.languages.getLanguages();
 
   const skipLangs = _getLanguagesToSkip();
-  langIDArray = langIDArray.filter(lang => !skipLangs.includes(lang));
+  langIDArray = langIDArray.filter(lang => !skipLangs.includes(lang) && !lang.startsWith('csv'));
 
-  for (const langID in langIDArray) {
-    completionItemArray.push(makeCompletionItem(langIDArray[langID], position));
-  }
-
-  return completionItemArray;
+  return langIDArray.map(lang => new vscode.CompletionItem(lang, vscode.CompletionItemKind.Constant));
 }
 
 
@@ -120,7 +114,7 @@ function _getCompletionItemsProperties(langID, position, context) {
 
     for (const property of Object.entries(properties)) {
       // filter out anything but comments or brackets here
-      if (property[0].replace(/^([^.]*)\..*/m, '$1') === 'comments' || property[0] === "brackets")
+      if (property[0].replace(/^([^.]*)\..*/m, '$1') === 'comments' || property[0] === "brackets" || property[0] === "autoClosingPairs")
             completionItemArray.push(makeCompletionItem(property, position));
     }
     return completionItemArray;
@@ -165,7 +159,7 @@ function makeCompletionItem(key, position) {
  * @returns {string[]}
  */
 function _getLanguagesToSkip  () {
-  return ['log', 'Log', 'search-result', 'plaintext', 'scminput', 'properties', 'csv', 'tsv', 'excel'];
+  return ['code-text-binary', 'bibtex', 'log', 'Log', 'search-result', 'plaintext', 'juliamarkdown', 'scminput', 'properties', 'csv', 'tsv', 'excel'];
 }
 
 /**

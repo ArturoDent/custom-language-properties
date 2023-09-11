@@ -67,7 +67,8 @@ async function _setConfig (settingConfigs, context, languageSet) {
 
   let disposable;
   // const configSet = new Set(['comments', 'brackets', 'indentationRules', 'onEnterRules', 'wordPattern']);
-  const configSet = new Set(['comments', 'brackets']);
+  // const configSet = new Set(['comments', 'brackets']);
+  const configSet = new Set(['comments', 'brackets', 'autoClosingPairs']);
 
   languageSet.forEach(async langID => {
 
@@ -108,7 +109,11 @@ async function _setConfig (settingConfigs, context, languageSet) {
             thisLanguageConfig[temp[0]][temp[1]] = entry[1];
           }
         }
-        // prop = "brackets[[]] or
+        // this works (uses proposed api though) autoClosingPairs is an array of objects
+        else if (configSet.has(prop) && prop === 'autoClosingPairs'){
+          thisLanguageConfig['autoClosingPairs'] = entry[1];
+        }
+        // prop = "brackets[[]] brackets is an array of arrays
         else if (configSet.has(prop[0])) {
           thisLanguageConfig[prop] = entry[1];
         }

@@ -1,10 +1,12 @@
 const vscode = require('vscode');
+const fs = require('fs');
+const path = require('path');
+
 const extSettings = require('./extensionSettings');
 const providers = require('./completionProviders');
 const makeFiles = require('./getLanguageFiles');
 
-const fs = require('fs');
-const path = require('path');
+
 
 /**
  * @param {vscode.ExtensionContext} context
@@ -29,6 +31,8 @@ async function activate(context) {
     
     if (vscode.window.activeTextEditor) 
       makeFiles.showLanguageConfigFile(vscode.window.activeTextEditor.document.languageId);
+
+      // __characterPairSupport?: {autoClosingPairs: {close: string, notIn: string[], open: string}[]}
 	});
   context.subscriptions.push(disposable);
 
