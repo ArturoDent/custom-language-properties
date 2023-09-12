@@ -2,7 +2,7 @@
 
 This extension allows you to set your own language properties for the languages you use.  These properties include:
 
-* comments and  brackets  
+* comments, brackets and autoClosingPairs  
 
 Not available yet: work continues on `indentationRules`, `onEnterRules`, and `wordPattern`.
 
@@ -10,7 +10,7 @@ Not available yet: work continues on `indentationRules`, `onEnterRules`, and `wo
 
 ## Features
 
-For example, if you prefer your line comments to look like &nbsp; `// *` &nbsp;  you can set it to that in specific languages.  Here is an example setting in user `settings.json`:
+For example, if you prefer your line comments to look like &nbsp; `// *  ` &nbsp;  you can set it to that in specific languages.  Here is an example setting in user `settings.json`:
 
 <!-- ,
     {
@@ -39,9 +39,9 @@ For example, if you prefer your line comments to look like &nbsp; `// *` &nbsp; 
 
 ## Requirements
 
-Only these language configuration properties can be modified by this extension at this time: &emsp; `comments` and `brackets`
+Only these language configuration properties can be modified by this extension at this time: &emsp; `comments`, `brackets` and `autoClosingPairs`.
 
-[Because `indentationRules`, `onEnterRules`, and `wordPattern` use regexp values, I am continuing to work on adding those.]
+Because `indentationRules`, `onEnterRules`, and `wordPattern` use regexp values, I am continuing to work on adding those.
 
 The built-in `vscode.languages.setLanguageConfiguration()` can only use the above settings.  Some other language configuration properties can be set in other ways:
 
@@ -76,9 +76,9 @@ If at any time you just want to see the language configuration file for the curr
 
 * Run the command `custom-language-syntax.showConfigFile` to see the current editor's language configuration file and then  
 
-Properties, like `comments.lineComment`  already used in the setting for a language are filtered out of the subsequent completion suggestions *if* the `settings.json` file has been saved.  `getConfiguration()` will not get settings that haven't yet been saved.  
+Properties, like `comments.lineComment`  already used in the setting for a language are filtered out of the subsequent completion suggestions.  The command `custom-language-syntax.showConfigFile` will not get settings that haven't yet been saved.  
 
-### This extension **must** have its own copy of the language configuration file for each languageID that you wish to use in the setting.   If you are not getting intellisense in the `"custom-language-properties"` setting for a language's configuration propoerties, like `comments.lineComment` or `brackets` with their default values, run the `custom-language-syntax.rebuildConfigFiles` mentioned above.  
+* This extension **must** have its own copy of the language configuration file for each languageID that you wish to use in the setting.   If you are not getting intellisense in the `"custom-language-properties"` setting for a language's configuration propoerties, like `comments.lineComment` or `brackets` with their default values, run the `custom-language-syntax.rebuildConfigFiles` mentioned above.  
 
 > Note: There is a general setting `Editor > Comments: Insert Space` which, if enabled, will automatically add a space after your comment characters.  The default option for this setting is `disabled`.  Just be aware that if you have that setting enabled a space will be added after whatever comment character(s) you set in this extension's settings.  
 
@@ -86,15 +86,8 @@ Properties, like `comments.lineComment`  already used in the setting for a langu
 
 ## TODO
 
-[ X ] - Provide completions for language identifiers.  
-[ X ] - Provide completions for available properties in each language.  
-[ X ] - Scrape all default language configuration files and build `<langID>.json` files for completionProvider properties.  
-[ X ] - Fix resetting to defaults when settings removed.  
-[ X ] - Investigate getting settings (for the filters) of a dirty settings.json file, not returned by `getConfiguration()`.  
-[ X ] - Make language file acquisition and reduction automatic for new languages on start-up.  
-[&emsp; ] - Investigate how to get `indentationRules`, `onEnterRules`, and `wordPattern` regex values working.  
-[&emsp; ] - Fix intellisense for partial completions in settings.  
-[ X ] - Investigate global storage for config and intellisense files.  
+[ ] - Investigate how to get `indentationRules`, `onEnterRules`, and `wordPattern` regex values working.  
+[ ] - Fix intellisense for partial completions in settings.  
 
 ## Release Notes
 
@@ -106,10 +99,11 @@ Properties, like `comments.lineComment`  already used in the setting for a langu
 0.1.5 - Added filters for comments/brackets and for already used properties in the setting.  
 0.2.0 - `getLanguageConfigFiles()` changed to handle arrays of contributed languages.  
 0.3.0 - Added get input from user for unknown languages.  
-0.4.0 - Added lisp (https://marketplace.visualstudio.com/items?itemName=mattn.Lisp) to supported languages.  
+0.4.0 - Added lisp ([lisp language extension](https://marketplace.visualstudio.com/items?itemName=mattn.Lisp)) to supported languages.  
 0.5.0 - Simplified configuration file creation.  
 &emsp;&emsp;&emsp;Using `jsonc-parser` for configuration files.  
 &emsp;&emsp;&emsp;New command: `custom-language-syntax.rebuildConfigFiles`.  
 &emsp;&emsp;&emsp;0.5.2 - Better intellisense.  Refactor getting settings and setting configurations.  
+0.6.0 - Added support for `autoClosingPairs`.  
 
 --------------

@@ -150,6 +150,7 @@ function makeCompletionItem(key, position) {
     item.detail = `array : ${ keyStringified }`;
     item.insertText = `${key[0]}": ${ keyStringified }`;
   }
+
   return item;
 }
 
