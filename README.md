@@ -4,7 +4,9 @@ This extension allows you to set your own language properties for the languages 
 
 * comments, brackets and autoClosingPairs  
 
-Not available yet: work continues on `indentationRules`, `onEnterRules`, and `wordPattern`.
+Not available yet: `indentationRules`, `onEnterRules`, and `wordPattern`.
+
+Note that any changes you make in your settings in the `"custom-language-properties": {}` do **NOT** edit the underlying language configuration file provided by a language extension.  The working language configuration properties are modified by updating a vscode api without affecting any language extension files.  
 
  --------------
 
@@ -27,13 +29,15 @@ For example, if you prefer your line comments to look like &nbsp; `// *  ` &nbsp
 }
 ```
 
-  These are **NOT** additional comment styles, the default comment styles will be replaced by those in your setting.  I suggest you do not go crazy with comment style for example, as other editors may not recognize them as comments.  So something like &nbsp; `// **` &nbsp; is fine (the leading &nbsp; `//` will still be recognized as a comment) but &nbsp; `**` &nbsp;  by itself will not by another editor or person without this extension and that setting.
+  These are **NOT** additional comment styles, the default comment styles will be replaced by those in your setting.  I suggest you do not go crazy with comment style for example, as other editors may not recognize them as comments.  So something like &nbsp; `// **` &nbsp; is fine (the leading &nbsp; `//` will still be recognized as a comment) but &nbsp; `**` &nbsp;  by itself will not be recognized by another editor or person without this extension and that setting.
 
-  The `brackets` setting will replace the entire default language `brackets` configuration.  So you probably don't want to do that but add another `brackets` option to the end of the default setting.  Above is the python default `brackets` setting, to add to it use the same syntax plus your addition, like so:
+  The `brackets` setting will replace the entire default language `brackets` configuration.  So you probably don't want to do that but instead add another `brackets` option to the end of the default setting.  Above is the python default `brackets` setting, to add to it use the same syntax plus your addition, like so:
 
 ```jsonc
 "python.brackets": [["{","}"],["[","]"],["(",")"],["<",">"]]
 ```
+
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; <img src="https://github.com/ArturoDent/custom-comments/blob/master/images/images/customMarkdownBackticks.gif?raw=true" width="300" height="650" alt="demo of removing backtick auto-completion in markdown using this extension"/>
 
 --------------
 
@@ -45,8 +49,9 @@ Because `indentationRules`, `onEnterRules`, and `wordPattern` use regexp values,
 
 The built-in `vscode.languages.setLanguageConfiguration()` can only use the above settings.  Some other language configuration properties can be set in other ways:
 
-* Autoclosing behavior with the `editor.autoClosingQuotes` and `editor.autoClosingBrackets` settings.
-* Autosurrounding behavior with the `editor.autoSurround` setting.  
+* Autoclosing behavior with the `Editor: Auto Closing Quotes` and `Editor: Auto Closing Brackets` settings.
+* Autosurrounding behavior with the `Editor: Auto Surround` setting.  
+* Autoclosing comments with the `Editor: Auto Closing Comments` setting..
 
 The *default* values are shown where available in the completion suggestion pop-up.  Intellisense will complete the default values - you can add or modify those values.  You do not need to include the default values, they will automatically be added for you.
 
@@ -68,13 +73,13 @@ You **must** use vscode's language identifiers within the setting, like `csharp`
 
 Where appropriate, intellisense will suggest available language IDs and language properties (like `comments.lineComment`) relevant to each language.  
 
-If you have added a language configuration extension **after the first time this extension is activated**, you will need to re-run the initialization step that finsd all language configuration extensions in your workspace and builds the necessary files in the extension's storage to enable intellisense in the settings.  
+If you have added a language configuration extension **after the first time this extension is activated**, you will need to re-run the initialization step that finds all language configuration extensions in your workspace and builds the necessary files in the extension's storage to enable intellisense in the settings.  
 
 * Run the command `custom-language-syntax.rebuildConfigFiles` to find each installed language configuration extension and build the necessary files.  The required files will be automatically saved in the correct location.
 
 If at any time you just want to see the language configuration file for the current editor's language, you can
 
-* Run the command `custom-language-syntax.showConfigFile` to see the current editor's language configuration file and then  
+* Run the command `custom-language-syntax.showConfigFile` to see the current editor's language configuration file.  You can modify that file if you wish - that is editing the actual language configuration file provided by the language extension.  These changes will affect that language's configurations going forward.  But if that language extension is ever updated your changes would be over-written.  
 
 Properties, like `comments.lineComment`  already used in the setting for a language are filtered out of the subsequent completion suggestions.  The command `custom-language-syntax.showConfigFile` will not get settings that haven't yet been saved.  
 
@@ -104,6 +109,7 @@ Properties, like `comments.lineComment`  already used in the setting for a langu
 &emsp;&emsp;&emsp;Using `jsonc-parser` for configuration files.  
 &emsp;&emsp;&emsp;New command: `custom-language-syntax.rebuildConfigFiles`.  
 &emsp;&emsp;&emsp;0.5.2 - Better intellisense.  Refactor getting settings and setting configurations.  
+
 0.6.0 - Added support for `autoClosingPairs`.  
 
 --------------

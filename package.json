@@ -3,7 +3,7 @@
 	"displayName": "Custom Language Properties",
 	"publisher": "ArturoDent",
 	"description": "Create your custom language properties",
-	"version": "0.5.5",
+	"version": "0.6.0",
 	"preview": true,
 	"license": "MIT",
 	"repository": {
@@ -11,11 +11,8 @@
 		"url": "https://github.com/ArturoDent/custom-language-properties"
 	},
 	"engines": {
-		"vscode": "^1.52.0"
+		"vscode": "^1.83.0"
 	},
-	"enabledApiProposals": [
-		"languageConfigurationAutoClosingPairs"
-	],
   "extensionKind": [
     "ui",
     "workspace"
@@ -31,9 +28,7 @@
 		"block comment"
 	],
 	"activationEvents": [
-		"onStartupFinished",
-		"onCommand:custom-language-syntax.showConfigFile",
-		"onCommand:custom-language-syntax.rebuildConfigFiles"
+		"onStartupFinished"
 	],
 	"main": "./src/extension.js",
 	"browser": "./src/extension.js",
