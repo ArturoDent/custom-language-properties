@@ -2,9 +2,15 @@
 
 This extension allows you to set your own language properties for the languages you use.  These properties include:
 
-* comments, brackets and autoClosingPairs  
+```plaintext
+   comments
+   brackets
+   autoClosingPairs   // support removed
+ ```
 
-Not available yet: `indentationRules`, `onEnterRules`, and `wordPattern`.
+ v0.6.1 - REMOVES support for `autoClosingPairs`.  
+
+Not available yet: indentationRules, onEnterRules, and wordPattern.
 
 Note that any changes you make in your settings in the `"custom-language-properties": {}` do **NOT** edit the underlying language configuration file provided by a language extension.  The working language configuration properties are modified by updating a vscode api without affecting any language extension files.  
 
@@ -47,7 +53,7 @@ Demo removing backtick completion in a markdown file:
 
 ## Requirements
 
-Only these language configuration properties can be modified by this extension at this time: &emsp; `comments`, `brackets` and `autoClosingPairs`.
+Only these language configuration properties can be modified by this extension at this time: &emsp; `comments` and `brackets`.
 
 Because `indentationRules`, `onEnterRules`, and `wordPattern` use regexp values, I am continuing to work on adding those.
 
@@ -115,5 +121,7 @@ Properties, like `comments.lineComment`  already used in the setting for a langu
 &emsp;&emsp;&emsp;0.5.2 - Better intellisense.  Refactor getting settings and setting configurations.  
 
 0.6.0 - Added support for `autoClosingPairs`.  
+
+0.6.1 - REMOVED support for `autoClosingPairs`.  
 
 --------------

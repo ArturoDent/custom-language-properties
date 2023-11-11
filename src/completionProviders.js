@@ -114,7 +114,8 @@ function _getCompletionItemsProperties(langID, position, context) {
 
     for (const property of Object.entries(properties)) {
       // filter out anything but comments or brackets here
-      if (property[0].replace(/^([^.]*)\..*/m, '$1') === 'comments' || property[0] === "brackets" || property[0] === "autoClosingPairs")
+      // if (property[0].replace(/^([^.]*)\..*/m, '$1') === 'comments' || property[0] === "brackets" || property[0] === "autoClosingPairs")
+      if (property[0].replace(/^([^.]*)\..*/m, '$1') === 'comments' || property[0] === "brackets")
             completionItemArray.push(makeCompletionItem(property, position));
     }
     return completionItemArray;

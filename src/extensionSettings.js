@@ -67,8 +67,8 @@ async function _setConfig (settingConfigs, context, languageSet) {
 
   let disposable;
   // const configSet = new Set(['comments', 'brackets', 'indentationRules', 'onEnterRules', 'wordPattern']);
-  // const configSet = new Set(['comments', 'brackets']);
-  const configSet = new Set(['comments', 'brackets', 'autoClosingPairs']);
+  // const configSet = new Set(['comments', 'brackets', 'autoClosingPairs']);
+  const configSet = new Set(['comments', 'brackets']);
 
   languageSet.forEach(async langID => {
 
@@ -79,13 +79,14 @@ async function _setConfig (settingConfigs, context, languageSet) {
        // this is the default language configuration
       let thisLanguageConfig = jsonc.parse(fs.readFileSync(thisPath).toString());
       
+      // // delete everything except comments, brackets and autoClosingPairs at present
       // delete everything except comments and brackets at present
       for (const property in thisLanguageConfig) {
         if (!configSet.has(property)) delete thisLanguageConfig[property];
       }
 
       // The Object.entries() method returns an array of a given object's
-      // own enumerable string-keyed property [key, value] pairs.
+      //     own enumerable string-keyed property [key, value] pairs.
       let settings = Object.entries(settingConfigs).filter(setting => typeof setting[1] !== 'function');
 
       for (let index = 0; index < settings.length; index++) {
@@ -93,35 +94,35 @@ async function _setConfig (settingConfigs, context, languageSet) {
         let entry = settings[index];
         let found = entry[0].match(/^(?<lang>[^.]*)\./m);
 
-        // if (!found || !found.groups || found.groups.lang !== langID) continue;
         if (!found?.groups || found.groups?.lang !== langID) continue;
 
         let prop = entry[0].replace(/^([^.]*)\./m, '');
 
-        // prop = "comments.lineComment"
+        // e.g., prop = "comments.lineComment"
         if (prop.includes('.')) {
 
           let temp = prop.split('.');
 
-          // need to set both comment:lineComment and blockComment, else it is deleted from the configuration!!
+          // need to set BOTH comment:lineComment and comment:blockComment, 
+          //   else it is deleted from the configuration!!
           // will overwrite the default config with matching entry in the settings
           if (temp.length === 2 && configSet.has(temp[0])) {
             thisLanguageConfig[temp[0]][temp[1]] = entry[1];
           }
         }
-        // this works (uses proposed api though) autoClosingPairs is an array of objects
-        else if (configSet.has(prop) && prop === 'autoClosingPairs'){
-          thisLanguageConfig['autoClosingPairs'] = entry[1];
-        }
+        // this works except for notIn[]
+        // else if (configSet.has(prop) && prop === 'autoClosingPairs'){
+        //   thisLanguageConfig['autoClosingPairs'] = entry[1];
+        // }
         // prop = "brackets[[]] brackets is an array of arrays
         else if (configSet.has(prop[0])) {
           thisLanguageConfig[prop] = entry[1];
         }
       }
 
-      disposable = await vscode.languages.setLanguageConfiguration( langID, thisLanguageConfig );
+      disposable = vscode.languages.setLanguageConfiguration( langID, thisLanguageConfig );
       context.subscriptions.push(disposable);
     }
-    // else // couldn't set config, languageConfigs/${ langID }-language.json doesn't exist
+    // else couldn't set config, languageConfigs/${ langID }-language.json doesn't exist
   })
 };

@@ -31,8 +31,6 @@ async function activate(context) {
     
     if (vscode.window.activeTextEditor) 
       makeFiles.showLanguageConfigFile(vscode.window.activeTextEditor.document.languageId);
-
-      // __characterPairSupport?: {autoClosingPairs: {close: string, notIn: string[], open: string}[]}
 	});
   context.subscriptions.push(disposable);
 
