@@ -5,10 +5,10 @@ This extension allows you to set your own language properties for the languages 
 ```plaintext
    comments
    brackets
-   autoClosingPairs   // support removed
+   autoClosingPairs   // support removed in v0.6.1
  ```
 
- v0.6.1 - REMOVES support for `autoClosingPairs`.  
+ v0.6.1 - REMOVES support for `autoClosingPairs` because vscode's implementation is buggy.  If you really want `autoClosingPairs` support, downgrade this extension to v0.6.0 - and don't use any other options like `comments.lineComment`, etc.
 
 Not available yet: indentationRules, onEnterRules, and wordPattern.
 
