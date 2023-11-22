@@ -47,7 +47,7 @@ For example, if you prefer your line comments to look like &nbsp; `// *  ` &nbsp
 
 Demo removing backtick completion in a markdown file:  
 
-&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; <img src="https://github.com/ArturoDent/custom-language-properties/blob/master/images/customMarkdownBackticks.gif?raw=true" width="500" height="650" alt="demo of removing backtick auto-completion in markdown using this extension"/>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; <img src="https://github.com/ArturoDent/custom-language-properties/blob/main/images/customMarkdownBackticks.gif?raw=true" width="500" height="650" alt="demo of removing backtick auto-completion in markdown using this extension"/>
 
 --------------
 
