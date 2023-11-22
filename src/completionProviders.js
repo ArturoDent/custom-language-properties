@@ -161,7 +161,8 @@ function makeCompletionItem(key, position) {
  * @returns {string[]}
  */
 function _getLanguagesToSkip  () {
-  return ['code-text-binary', 'bibtex', 'log', 'Log', 'search-result', 'plaintext', 'juliamarkdown', 'scminput', 'properties', 'csv', 'tsv', 'excel'];
+  // return ['code-text-binary', 'bibtex', 'log', 'Log', 'search-result', 'plaintext', 'juliamarkdown', 'scminput', 'properties', 'csv', 'tsv', 'excel'];
+  return ['code-text-binary', 'bibtex', 'log', 'Log', 'search-result', 'plaintext', 'juliamarkdown', 'scminput', 'csv', 'tsv', 'excel'];
 }
 
 /**

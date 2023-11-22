@@ -206,7 +206,8 @@ exports.reduceFiles = async function (context, extConfigDirectory, extLangPropDi
  * @returns {string[]}
  */
 function _getLanguagesToSkip  () {
-  return ['log', 'Log', 'search-result', 'plaintext', 'scminput', 'properties', 'csv', 'tsv', 'excel'];
+  // return ['log', 'Log', 'search-result', 'plaintext', 'scminput', 'properties', 'csv', 'tsv', 'excel'];
+  return ['log', 'Log', 'search-result', 'plaintext', 'scminput', 'csv', 'tsv', 'excel'];
 }
 
 // {
