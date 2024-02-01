@@ -124,6 +124,8 @@ Properties, like `comments.lineComment`  already used in the setting for a langu
 
 0.6.1 - REMOVED support for `autoClosingPairs`.  
 
-0.6.2 - Added support for `properties` langage mode.  
+0.6.2 - Added support for `properties` language mode.  
+
+0.6.4 - Added support for 'html.erb' type of language id's.  
 
 --------------

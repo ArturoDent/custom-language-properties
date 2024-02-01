@@ -3,6 +3,8 @@
 // const fs = require('fs');
 // const path = require('path');
 
+
+
 // /**
 //  * Fom the language configuration for the current file 
 //  * get the value of config argument

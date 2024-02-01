@@ -2,14 +2,14 @@
 	"compilerOptions": {
 		"module": "commonjs",
 		"noEmit": true,
-		"target": "ES2020",
+		"target": "ESNext",
 		"checkJs": true,
 		"allowJs": true,
 		"alwaysStrict": true,
 		"resolveJsonModule": true,
 		"strict": true,
 		"lib": [
-			"ES2020"
+			"ESNext"
 		]
 	},
 	"exclude": ["node_modules"],

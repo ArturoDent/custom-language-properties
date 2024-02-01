@@ -18,9 +18,12 @@ exports.getSettingsAndSetConfigs = async function (context) {
   
   // loop through all languages that appear in the 'custom-language-properties' settings
   // and add to the languagesInSettingsSet
-  Object.entries(settingConfigs).forEach(langObject => {
-    if (typeof langObject[1] !== 'function') languagesInSettingsSet.add(langObject[0].replace(/^([^.]*)\..*/m, '$1'));
-  });
+
+  for (const langObject of Object.values(settingConfigs)) {
+    
+    const language = langObject[0].match(/^(.*?)\.(?=comments|brackets)/m);
+    if (language) languagesInSettingsSet.add(language[1]);
+  }
 
   // compare the previousLanguagesInSettingsSet to languagesInSettingsSet
   // updates droppedLanguages Set and sets their configs to the default state
@@ -35,14 +38,17 @@ exports.getSettingsAndSetConfigs = async function (context) {
  * Get this extension's 'custom-language-properties' settings
  * @returns - a vscode.WorkspaceConfiguration
  */
-async function _load  () {
-  return await vscode.workspace.getConfiguration('custom-language-properties');
+async function _load() {
+  console.log();
+  const configs = vscode.workspace.getConfiguration('custom-language-properties');
+  // to strip off WorkspaceConfiguration.has/inspect/etc.
+  return Object.entries(configs).filter(config => typeof config[1] !== 'function');
 };
 
 
 /**
  * Set the configs for any languages dropped from the settings configuration.
- * @param {vscode.WorkspaceConfiguration} settingConfigs 
+ * @param {[string, any][]} settingConfigs 
  * @param {vscode.ExtensionContext} context 
  */
 async function _updateDroppedLanguages  (settingConfigs, context) {
@@ -59,7 +65,7 @@ async function _updateDroppedLanguages  (settingConfigs, context) {
 /**
  * SetLanguageConfiguration() for the given languageID's, both current and dropped languages.
  *
- * @param {vscode.WorkspaceConfiguration} settingConfigs - this extension's settings
+ * @param {[string, any][]} settingConfigs - this extension's settings
  * @param {vscode.ExtensionContext} context
  * @param {Set<string>} languageSet - an array of languageID's
  */
@@ -72,6 +78,9 @@ async function _setConfig (settingConfigs, context, languageSet) {
 
   languageSet.forEach(async langID => {
 
+    const originalLangID = langID;
+    // if langID = 'html.erb' get only the 'erb' part
+    langID = langID.replace(/^(.*\.)?(.+)$/m, '$2');
     const thisPath = path.join(context.globalStorageUri.fsPath, 'languageConfigs', `${ langID }-language.json`);
 
     if (!!thisPath && fs.existsSync(thisPath)) {
@@ -87,16 +96,38 @@ async function _setConfig (settingConfigs, context, languageSet) {
 
       // The Object.entries() method returns an array of a given object's
       //     own enumerable string-keyed property [key, value] pairs.
-      let settings = Object.entries(settingConfigs).filter(setting => typeof setting[1] !== 'function');
 
-      for (let index = 0; index < settings.length; index++) {
+      // [
+      //   [
+      //     "html.erb.comments.blockComment",
+      //     [
+      //       "<!--",
+      //       "-->",
+      //     ],
+      //   ],
+      //   [
+      //     "bat.comments.lineComment",
+      //     "::",
+      //   ],
+      // ]
 
-        let entry = settings[index];
-        let found = entry[0].match(/^(?<lang>[^.]*)\./m);
+      for (let index = 0; index < settingConfigs.length; index++) {
 
+        let entry = settingConfigs[index];
+
+        const re = /^(.*\.)?(?<lang>.+)\.(?=comments|brackets)(?<prop>.*)/m;
+
+        let found = entry[0].match(re);
+
+        // get 'html.erb' from 'html.erb.comments.lineComment'
+        // let found = entry[0].match(/^(.*\.)?(?<lang>.+)\.(?=comments|brackets)/m);
+        
         if (!found?.groups || found.groups?.lang !== langID) continue;
 
-        let prop = entry[0].replace(/^([^.]*)\./m, '');
+        let prop = found.groups?.prop;
+
+        // get 'comments.lineComment' from 'html.erb.comments.lineComment'
+        // let prop = entry[0].replace(/^(.+)\.(?=comments|brackets)(.*)$/m, '$2');
 
         // e.g., prop = "comments.lineComment"
         if (prop.includes('.')) {
@@ -115,12 +146,14 @@ async function _setConfig (settingConfigs, context, languageSet) {
         //   thisLanguageConfig['autoClosingPairs'] = entry[1];
         // }
         // prop = "brackets[[]] brackets is an array of arrays
-        else if (configSet.has(prop[0])) {
+
+        else if (configSet.has(prop)) {
           thisLanguageConfig[prop] = entry[1];
         }
       }
 
-      disposable = vscode.languages.setLanguageConfiguration( langID, thisLanguageConfig );
+      // use full `html.erb' ere
+      disposable = vscode.languages.setLanguageConfiguration( originalLangID, thisLanguageConfig );
       context.subscriptions.push(disposable);
     }
     // else couldn't set config, languageConfigs/${ langID }-language.json doesn't exist

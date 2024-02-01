@@ -34,6 +34,7 @@ exports.getLanguageConfigFiles = async function (context, extConfigDirectory) {
           );
           
           if (!!langConfigFilePath && fs.existsSync(langConfigFilePath)) {
+            packageLang.id = packageLang.id.replace(/^(.*\.)?(.+)$/m, '$2');
             const thisConfig = JSON.stringify(jsonc.parse(fs.readFileSync(langConfigFilePath).toString()));
             const destPath = path.join(extConfigDirectory, `${ packageLang.id }-language.json`);
             fs.writeFileSync(destPath, thisConfig, { flag:'w' });
@@ -99,13 +100,18 @@ exports.getLanguageConfigFile = async function (langID) {
  */
 exports.showLanguageConfigFile = async function (langConfigFilePath) {
 
+  let success = false;
+
   for (const _ext of vscode.extensions.all) {
+
     if (_ext.packageJSON.contributes && _ext.packageJSON.contributes.languages) {
       
       const packageLang = _ext.packageJSON.contributes.languages; // could be an array
 
-      packageLang.forEach(async (/** @type {{ id: string; }} */ lang, /** @type {number} */ index) => {
+      let index = 0;
 
+      for (const lang of packageLang) {
+      
         if (lang.id === langConfigFilePath) {
 
           let filePath = path.join(
@@ -115,11 +121,14 @@ exports.showLanguageConfigFile = async function (langConfigFilePath) {
           if (!!langConfigFilePath && fs.existsSync(filePath)) {
             await vscode.window.showTextDocument(vscode.Uri.file(filePath));
             await vscode.commands.executeCommand('editor.action.formatDocument');
-            return;
+            success = true;
           }
+          break;
         }
-      });
+      };
     }
+
+    if (success) break;
     // TODO else { show notification message can't find a language-configuration.json file }
   }
 }
