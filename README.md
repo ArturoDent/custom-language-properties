@@ -85,11 +85,26 @@ Where appropriate, intellisense will suggest available language IDs and language
 
 If you have added a language configuration extension **after the first time this extension is activated**, you will need to re-run the initialization step that finds all language configuration extensions in your workspace and builds the necessary files in the extension's storage to enable intellisense in the settings.  
 
-* Run the command `custom-language-syntax.rebuildConfigFiles` to find each installed language configuration extension and build the necessary files.  The required files will be automatically saved in the correct location.
+* Run the command ***Custom Language Properties: Check for new language extensions*** (`custom-language-syntax.rebuildConfigFiles`) to find each installed language configuration extension and build the necessary files.  The required files will be automatically saved in the correct location.
+
+You will get a notifcation when the above command has finished and whether it has found any new langages.  All installed languages will be re-examined so that if there were language configuration changes after installing the languages, these changes will be used.  If the message indicates that your newly-installed language was found, you can begin using that language in this extension's settings - with intellisense.
+
+The location of these internal files built and used by this extension are:
+
+```plaintext
+c:\\Users\\Mark\\AppData\\Roaming\\Code\\User\\globalStorage\\arturodent.custom-language-syntax\\languageConfigs\\erb-language.json
+
+c:\\Users\\Mark\\AppData\\Roaming\\Code\\User\\globalStorage\\arturodent.custom-language-syntax\\languageProperties\\erb-language.json
+
+- replace Code with Code-Insiders if necessary
+- for nix, search for the "arturodent.custom-language-syntax\\languageConfigs" folder
+```
+
+These folders or files can be deleted at any time and the command `Custom Language Properties: Check for new language extensions` be re-run if you think necessary.
 
 If at any time you just want to see the language configuration file for the current editor's language, you can
 
-* Run the command `custom-language-syntax.showConfigFile` to see the current editor's language configuration file.  You can modify that file if you wish - that is editing the actual language configuration file provided by the language extension.  These changes will affect that language's configurations going forward.  But if that language extension is ever updated your changes would be over-written.  
+* Run the command ***Custom Language Properties: Show language configuration for current editor*** (`custom-language-syntax.showConfigFile`) to see the current editor's language configuration file.  You can modify that file if you wish - that is editing the actual language configuration file provided by the language extension.  These changes will affect that language's configurations going forward.  But if that language extension is ever updated your changes would be over-written.  
 
 Properties, like `comments.lineComment`  already used in the setting for a language are filtered out of the subsequent completion suggestions.  The command `custom-language-syntax.showConfigFile` will not get settings that haven't yet been saved.  
 
@@ -127,5 +142,6 @@ Properties, like `comments.lineComment`  already used in the setting for a langu
 0.6.2 - Added support for `properties` language mode.  
 
 0.6.4 - Added support for 'html.erb' type of language id's.  
+0.6.5 - Added a notification for when new languages have been found.  
 
 --------------

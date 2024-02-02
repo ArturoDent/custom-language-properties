@@ -11,6 +11,11 @@ const jsonc = require('jsonc-parser');
  */
 exports.getLanguageConfigFiles = async function (context, extConfigDirectory) {
 
+  let newLanguageCount = 0;
+
+  /** @type {string[]} */
+  let newLanguages  = [];
+
   if (!fs.existsSync(extConfigDirectory)) fs.mkdirSync(extConfigDirectory,{ recursive: true });
 
   let langConfigFilePath = null;
@@ -34,15 +39,24 @@ exports.getLanguageConfigFiles = async function (context, extConfigDirectory) {
           );
           
           if (!!langConfigFilePath && fs.existsSync(langConfigFilePath)) {
-            packageLang.id = packageLang.id.replace(/^(.*\.)?(.+)$/m, '$2');
+            let langID = packageLang.id.replace(/^(.*\.)?(.+)$/m, '$2');
             const thisConfig = JSON.stringify(jsonc.parse(fs.readFileSync(langConfigFilePath).toString()));
-            const destPath = path.join(extConfigDirectory, `${ packageLang.id }-language.json`);
-            fs.writeFileSync(destPath, thisConfig, { flag:'w' });
+            
+            // const destPath = path.join(extConfigDirectory, `${packageLang.id}-language.json`);
+            const destPath = path.join(extConfigDirectory, `${langID}-language.json`);
+            if (!fs.existsSync(destPath)) {
+              newLanguageCount++;
+              newLanguages.push(`${packageLang.id}`);
+            }
+            
+            fs.writeFileSync(destPath, thisConfig, { flag: 'w' });
           }
+          // destPath = "c:\\Users\\Mark\\AppData\\Roaming\\Code - Insiders\\User\\globalStorage\\arturodent.custom-language-syntax\\languageConfigs\\erb-language.json"
         }
       });
     }
   }
+  return {newLanguageCount, newLanguages};
 };
 
 /**

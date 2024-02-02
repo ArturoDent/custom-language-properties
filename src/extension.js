@@ -37,10 +37,18 @@ async function activate(context) {
   // ---------------------------------------------------------------------------------------------------------
 
   disposable = vscode.commands.registerCommand('custom-language-syntax.rebuildConfigFiles', async function () {
-    await makeFiles.getLanguageConfigFiles(context, extConfigDirectory);
+    
+    const newLangs = await makeFiles.getLanguageConfigFiles(context, extConfigDirectory);
+    
     await makeFiles.reduceFiles(context, extConfigDirectory, extLangPropDirectory);
     await extSettings.getSettingsAndSetConfigs(context);  // calls _setConfig() too
-    // TODO; notification message : complete
+
+    let message = `No new languages found.`;
+    if (newLangs.newLanguageCount) {
+      let langs = newLangs.newLanguages.join(', ');
+      message = `New languages found: ${langs}.`;
+    }
+    vscode.window.showInformationMessage(`Finished. ${message}`);
 	});
 	context.subscriptions.push(disposable);
 
