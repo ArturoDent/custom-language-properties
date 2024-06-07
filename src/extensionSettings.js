@@ -73,8 +73,8 @@ async function _setConfig (settingConfigs, context, languageSet) {
 
   let disposable;
   // const configSet = new Set(['comments', 'brackets', 'indentationRules', 'onEnterRules', 'wordPattern']);
-  // const configSet = new Set(['comments', 'brackets', 'autoClosingPairs']);
-  const configSet = new Set(['comments', 'brackets']);
+   const configSet = new Set(['comments', 'brackets', 'autoClosingPairs']);
+  //const configSet = new Set(['comments', 'brackets']);
 
   languageSet.forEach(async langID => {
 
@@ -83,7 +83,7 @@ async function _setConfig (settingConfigs, context, languageSet) {
     langID = langID.replace(/^(.*\.)?(.+)$/m, '$2');
     const thisPath = path.join(context.globalStorageUri.fsPath, 'languageConfigs', `${ langID }-language.json`);
 
-    if (!!thisPath && fs.existsSync(thisPath)) {
+    if (!!thisPath  &&  fs.existsSync(thisPath)) {
 
        // this is the default language configuration
       let thisLanguageConfig = jsonc.parse(fs.readFileSync(thisPath).toString());
@@ -115,14 +115,15 @@ async function _setConfig (settingConfigs, context, languageSet) {
 
         let entry = settingConfigs[index];
 
-        const re = /^(.*\.)?(?<lang>.+)\.(?=comments|brackets)(?<prop>.*)/m;
+        //const re = /^(.*\.)?(?<lang>.+)\.(?=comments|brackets)(?<prop>.*)/m;
+        const re = /^(.*\.)?(?<lang>.+)\.(?=comments|brackets|autoClosingPairs)(?<prop>.*)/m;
 
         let found = entry[0].match(re);
 
         // get 'html.erb' from 'html.erb.comments.lineComment'
         // let found = entry[0].match(/^(.*\.)?(?<lang>.+)\.(?=comments|brackets)/m);
         
-        if (!found?.groups || found.groups?.lang !== langID) continue;
+        if (!found?.groups  ||  found.groups?.lang !== langID) continue;
 
         let prop = found.groups?.prop;
 
@@ -137,12 +138,12 @@ async function _setConfig (settingConfigs, context, languageSet) {
           // need to set BOTH comment:lineComment and comment:blockComment, 
           //   else it is deleted from the configuration!!
           // will overwrite the default config with matching entry in the settings
-          if (temp.length === 2 && configSet.has(temp[0])) {
+          if (temp.length === 2  &&  configSet.has(temp[0])) {
             thisLanguageConfig[temp[0]][temp[1]] = entry[1];
           }
         }
         // this works except for notIn[]
-        // else if (configSet.has(prop) && prop === 'autoClosingPairs'){
+        // else if (configSet.has(prop)  &&  prop === 'autoClosingPairs'){
         //   thisLanguageConfig['autoClosingPairs'] = entry[1];
         // }
         // prop = "brackets[[]] brackets is an array of arrays

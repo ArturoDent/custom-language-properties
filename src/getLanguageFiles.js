@@ -22,7 +22,7 @@ exports.getLanguageConfigFiles = async function (context, extConfigDirectory) {
 
   for (const _ext of vscode.extensions.all) {
     
-    if (_ext.packageJSON.contributes && _ext.packageJSON.contributes.languages) {
+    if (_ext.packageJSON.contributes  &&  _ext.packageJSON.contributes.languages) {
       
       const contributedLanguages = _ext.packageJSON.contributes.languages;  // may be an array
 
@@ -31,14 +31,14 @@ exports.getLanguageConfigFiles = async function (context, extConfigDirectory) {
         // "languages" to skip, like plaintext, etc. = no configuration properties that we are interested in
         let skipLangs = _getLanguagesToSkip();
 
-        if (!skipLangs?.includes(packageLang.id) && _ext.packageJSON.contributes.languages[index].configuration) {
+        if (!skipLangs?.includes(packageLang.id)  &&  _ext.packageJSON.contributes.languages[index].configuration) {
 
           langConfigFilePath = path.join(
             _ext.extensionPath,
             _ext.packageJSON.contributes.languages[index].configuration
           );
           
-          if (!!langConfigFilePath && fs.existsSync(langConfigFilePath)) {
+          if (!!langConfigFilePath  &&  fs.existsSync(langConfigFilePath)) {
             let langID = packageLang.id.replace(/^(.*\.)?(.+)$/m, '$2');
             const thisConfig = JSON.stringify(jsonc.parse(fs.readFileSync(langConfigFilePath).toString()));
             
@@ -71,7 +71,7 @@ exports.getLanguageConfigFile = async function (langID) {
 
     let _ext = vscode.extensions.all[i];
 
-    if (_ext.packageJSON.contributes && _ext.packageJSON.contributes.languages) {
+    if (_ext.packageJSON.contributes  &&  _ext.packageJSON.contributes.languages) {
 
       const contributedLanguages = _ext.packageJSON.contributes.languages;  // may be an array
 
@@ -84,8 +84,8 @@ exports.getLanguageConfigFile = async function (langID) {
           // "languages" to skip, like plaintext, etc. = no configuration properties that we are interested in
           let skipLangs = _getLanguagesToSkip();
 
-          // if (!skipLangs?.includes(packageLang.id) && _ext.packageJSON.contributes.languages[index].configuration) {
-          if (!skipLangs?.includes(packageLang.id) && _ext.packageJSON.contributes.languages[j].configuration) {
+          // if (!skipLangs?.includes(packageLang.id)  &&  _ext.packageJSON.contributes.languages[index].configuration) {
+          if (!skipLangs?.includes(packageLang.id)  &&  _ext.packageJSON.contributes.languages[j].configuration) {
 
 
             langConfigFilePath = path.join(
@@ -95,7 +95,7 @@ exports.getLanguageConfigFile = async function (langID) {
 
             );
 
-            if (!!langConfigFilePath && fs.existsSync(langConfigFilePath)) {
+            if (!!langConfigFilePath  &&  fs.existsSync(langConfigFilePath)) {
               thisConfig = jsonc.parse(fs.readFileSync(langConfigFilePath).toString());
               return thisConfig;
             }
@@ -118,7 +118,7 @@ exports.showLanguageConfigFile = async function (langConfigFilePath) {
 
   for (const _ext of vscode.extensions.all) {
 
-    if (_ext.packageJSON.contributes && _ext.packageJSON.contributes.languages) {
+    if (_ext.packageJSON.contributes  &&  _ext.packageJSON.contributes.languages) {
       
       const packageLang = _ext.packageJSON.contributes.languages; // could be an array
 
@@ -132,7 +132,7 @@ exports.showLanguageConfigFile = async function (langConfigFilePath) {
             _ext.extensionPath,
             _ext.packageJSON.contributes.languages[index].configuration
           );
-          if (!!langConfigFilePath && fs.existsSync(filePath)) {
+          if (!!langConfigFilePath  &&  fs.existsSync(filePath)) {
             await vscode.window.showTextDocument(vscode.Uri.file(filePath));
             await vscode.commands.executeCommand('editor.action.formatDocument');
             success = true;

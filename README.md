@@ -143,5 +143,6 @@ Properties, like `comments.lineComment`  already used in the setting for a langu
 
 0.6.4 - Added support for 'html.erb' type of language id's.  
 0.6.5 - Added a notification for when new languages have been found.  
+0.6.6 - Removed git dependency?  How did it get there at all?  
 
 --------------

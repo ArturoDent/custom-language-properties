@@ -17,7 +17,7 @@ async function activate(context) {
   const extLangPropDirectory = path.join(context.globalStorageUri.fsPath, 'languageProperties');
 
   // so first run only, doesn't mean there is anything in those directories though
-  if (!fs.existsSync(extConfigDirectory) || !fs.existsSync(extLangPropDirectory)) {
+  if (!fs.existsSync(extConfigDirectory)  ||  !fs.existsSync(extLangPropDirectory)) {
     await makeFiles.getLanguageConfigFiles(context, extConfigDirectory);
     await makeFiles.reduceFiles(context, extConfigDirectory, extLangPropDirectory);
   }

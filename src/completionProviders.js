@@ -32,9 +32,9 @@ exports.makeSettingsCompletionProvider = function(extensionContext) {
 
 				const linePrefix = document.lineAt(position).text.substring(0, position.character);
         
-        if (curLocation.isAtPropertyKey && linePrefix.endsWith('"')) return _getCompletionItemsNewLangs();
+        if (curLocation.isAtPropertyKey  &&  linePrefix.endsWith('"')) return _getCompletionItemsNewLangs();
         
-        else if (curLocation.isAtPropertyKey && linePrefix.endsWith('.')) {
+        else if (curLocation.isAtPropertyKey  &&  linePrefix.endsWith('.')) {
           
           let language = "";
           let langNode;
@@ -42,7 +42,7 @@ exports.makeSettingsCompletionProvider = function(extensionContext) {
           let /** @type {string[]} */ found = [];
 
           // curLocation.path[1] = 'javascript.'
-          if (curLocation.path && curLocation.path[1].toString().endsWith('.')) {
+          if (curLocation.path  &&  curLocation.path[1].toString().endsWith('.')) {
             language = curLocation.path[1].toString();
             language = language.substring(0, language.length - 1);
           }
@@ -63,7 +63,7 @@ exports.makeSettingsCompletionProvider = function(extensionContext) {
 
           // filter out already used properties, even if not saved, like 'comments.lineComment'
 
-          if (found && completionArray) {
+          if (found  &&  completionArray) {
             completionArray = completionArray.filter(property => !found.find(config =>
               config[1] === `${ language }.${ property.label }`));
             return completionArray;
@@ -89,7 +89,7 @@ async function _getCompletionItemsNewLangs() {
   let langIDArray = await vscode.languages.getLanguages();
 
   const skipLangs = _getLanguagesToSkip();
-  langIDArray = langIDArray.filter(lang => !skipLangs.includes(lang) && !lang.startsWith('csv'));
+  langIDArray = langIDArray.filter(lang => !skipLangs.includes(lang)  &&  !lang.startsWith('csv'));
 
   return langIDArray.map(lang => new vscode.CompletionItem(lang, vscode.CompletionItemKind.Constant));
 }
@@ -114,8 +114,8 @@ function _getCompletionItemsProperties(langID, position, context) {
 
     for (const property of Object.entries(properties)) {
       // filter out anything but comments or brackets here
-      // if (property[0].replace(/^([^.]*)\..*/m, '$1') === 'comments' || property[0] === "brackets" || property[0] === "autoClosingPairs")
-      if (property[0].replace(/^([^.]*)\..*/m, '$1') === 'comments' || property[0] === "brackets")
+       if (property[0].replace(/^([^.]*)\..*/m, '$1') === 'comments'  ||  property[0] === "brackets"  ||  property[0] === "autoClosingPairs")
+      //if (property[0].replace(/^([^.]*)\..*/m, '$1') === 'comments'  ||  property[0] === "brackets")
             completionItemArray.push(makeCompletionItem(property, position));
     }
     return completionItemArray;
