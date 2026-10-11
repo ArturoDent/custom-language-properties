@@ -17,9 +17,14 @@ async function activate(context) {
   const extLangPropDirectory = path.join(context.globalStorageUri.fsPath, 'languageProperties');
 
   // so first run only, doesn't mean there is anything in those directories though
-  if (!fs.existsSync(extConfigDirectory)  ||  !fs.existsSync(extLangPropDirectory)) {
+  // or the first run after an update, an older version may have built files without 'autoClosingPairs'
+  const thisVersion = context.extension.packageJSON.version;
+
+  if (!fs.existsSync(extConfigDirectory)  ||  !fs.existsSync(extLangPropDirectory)  ||
+    context.globalState.get('version') !== thisVersion) {
     await makeFiles.getLanguageConfigFiles(context, extConfigDirectory);
     await makeFiles.reduceFiles(context, extConfigDirectory, extLangPropDirectory);
+    await context.globalState.update('version', thisVersion);
   }
   
   await extSettings.getSettingsAndSetConfigs(context);
@@ -57,7 +62,7 @@ async function activate(context) {
 	disposable = vscode.workspace.onDidChangeConfiguration(async event => {
 
     // includes removal or commenting out or change, must save to trigger
-    if (event.affectsConfiguration('custom-language-properties')) 
+    if (event.affectsConfiguration('custom-language-properties'))
       await extSettings.getSettingsAndSetConfigs(context);
       
     context.subscriptions.push(disposable);

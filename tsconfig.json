@@ -8,10 +8,18 @@
 		"alwaysStrict": true,
 		"resolveJsonModule": true,
 		"strict": true,
+		"types": [
+			"node"
+		],
 		"lib": [
-			"ESNext"
+			"ESNext",
+			"DOM"
 		]
 	},
-	"exclude": ["node_modules"],
-  "include": ["src/**/*"]
+	"exclude": [
+		"node_modules"
+	],
+	"include": [
+		"src/**/*"
+	]
 }

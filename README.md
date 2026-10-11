@@ -5,10 +5,54 @@ This extension allows you to set your own language properties for the languages 
 ```plaintext
    comments
    brackets
-   autoClosingPairs   // support removed in v0.6.1
+   autoClosingPairs   // back as of v0.6.7, see below
  ```
 
- v0.6.1 - REMOVES support for `autoClosingPairs` because vscode's implementation is buggy.  If you really want `autoClosingPairs` support, downgrade this extension to v0.6.0 - and don't use any other options like `comments.lineComment`, etc.
+ v0.6.7 - `autoClosingPairs` support (removed in v0.6.1) is back, and the `notIn` option now works.  If you stayed on v0.6.0 to keep `autoClosingPairs`, you can update to the latest version.
+
+Add an `autoClosingPairs` entry for a language.  Like `brackets`, it replaces the entire default `autoClosingPairs` configuration for that language:
+
+```jsonc
+"custom-language-properties": {
+  "javascript.autoClosingPairs": [
+    { "open": "{", "close": "}" },
+    { "open": "<", "close": ">", "notIn": ["string", "comment"] }
+  ]
+}
+```
+
+The `notIn` option accepts `"string"` and `"comment"`.  If you want the autoClosingPair to operate everywhere just delete the `, "notIn": ["string", "comment"]` part of the autocomplete.  
+
+## Adding or removing a single pair
+
+v0.6.8 - You do not have to list every default pair just to add or remove one.  Both `brackets` and `autoClosingPairs` take an `.add` and a `.remove` suffix, which edit the language's default list instead of replacing it:
+
+```jsonc
+"custom-language-properties": {
+
+  // the python defaults {} [] () are kept, and <> is added
+  "python.brackets.add": [["<", ">"]],
+
+  // the javascript defaults are kept, plus one more
+  "javascript.autoClosingPairs.add": [
+    { "open": "<", "close": ">", "notIn": ["string"] }
+  ],
+
+  // the markdown defaults are kept, except for the backtick pair
+  "markdown.autoClosingPairs.remove": [["`", "`"]]
+}
+```
+
+| Key | What it does |
+| --- | --- |
+| `<someLang>.brackets` | Replaces the entire default list |
+| `<someLang>.brackets.add` | Keeps the default list and adds your pairs to the end |
+| `<someLang>.brackets.remove` | Keeps the default list and removes your pairs from it |
+
+* The three keys can be combined for one language.  The list starts from the plain key if you used it (otherwise from the language's defaults), then the `.remove` pairs are removed and then the `.add` pairs are added.
+* An `autoClosingPairs.add` pair with the same `open` as an existing pair replaces that pair.  So this is also how to change the `notIn` of just one default pair.
+* A `.remove` pair is matched by its open and close characters only.  Removing a pair that is not in the list does nothing.
+* In an `.add` or `.remove` value a pair can be written as `["<", ">"]` or as `{ "open": "<", "close": ">" }`.
 
 Not available yet: indentationRules, onEnterRules, and wordPattern.
 
@@ -37,10 +81,10 @@ For example, if you prefer your line comments to look like &nbsp; `// *  ` &nbsp
 
   These are **NOT** additional comment styles, the default comment styles will be replaced by those in your setting.  I suggest you do not go crazy with comment style for example, as other editors may not recognize them as comments.  So something like &nbsp; `// **` &nbsp; is fine (the leading &nbsp; `//` will still be recognized as a comment) but &nbsp; `**` &nbsp;  by itself will not be recognized by another editor or person without this extension and that setting.
 
-  The `brackets` setting will replace the entire default language `brackets` configuration.  So you probably don't want to do that but instead add another `brackets` option to the end of the default setting.  Above is the python default `brackets` setting, to add to it use the same syntax plus your addition, like so:
+  The `brackets` setting will replace the entire default language `brackets` configuration.  So you probably don't want to do that but instead add another `brackets` option to the end of the default setting.  Above is the python default `brackets` setting, to add to it use `brackets.add` with just your addition, like so:
 
 ```jsonc
-"python.brackets": [["{","}"],["[","]"],["(",")"],["<",">"]]
+"python.brackets.add": [["<",">"]]
 ```
 
 ----------  
@@ -53,7 +97,7 @@ Demo removing backtick completion in a markdown file:
 
 ## Requirements
 
-Only these language configuration properties can be modified by this extension at this time: &emsp; `comments` and `brackets`.
+Only these language configuration properties can be modified by this extension at this time: &emsp; `comments`, `brackets` and `autoClosingPairs`.
 
 Because `indentationRules`, `onEnterRules`, and `wordPattern` use regexp values, I am continuing to work on adding those.
 
@@ -141,8 +185,10 @@ Properties, like `comments.lineComment`  already used in the setting for a langu
 
 0.6.2 - Added support for `properties` language mode.  
 
-0.6.4 - Added support for 'html.erb' type of language id's.  
+0.6.4 - Added support for '*.html.erb' type of language id's.  
 0.6.5 - Added a notification for when new languages have been found.  
 0.6.6 - Removed git dependency?  How did it get there at all?  
+0.6.7 - `autoClosingPairs` support is back, `notIn` fixed.  
+0.6.8 - Added `.add` and `.remove` for `brackets` and `autoClosingPairs`, to add or remove a single pair.  
 
 --------------

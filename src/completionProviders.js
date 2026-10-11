@@ -110,13 +110,24 @@ function _getCompletionItemsProperties(langID, position, context) {
   const langConfigPath = path.join(context.globalStorageUri.fsPath, 'languageProperties', `${ langID }.json`);
 
   if (fs.existsSync(langConfigPath)) {
-    const properties = require(langConfigPath);
+    // not require(), which caches the file so a rebuilt file is not seen until a reload
+    const properties = jsonc.parse(fs.readFileSync(langConfigPath).toString());
 
     for (const property of Object.entries(properties)) {
-      // filter out anything but comments or brackets here
-       if (property[0].replace(/^([^.]*)\..*/m, '$1') === 'comments'  ||  property[0] === "brackets"  ||  property[0] === "autoClosingPairs")
-      //if (property[0].replace(/^([^.]*)\..*/m, '$1') === 'comments'  ||  property[0] === "brackets")
+      // filter out anything but comments, brackets or autoClosingPairs here
+      if (property[0].replace(/^([^.]*)\..*/m, '$1') === 'comments'  ||  property[0] === "brackets"  ||  property[0] === "autoClosingPairs")
             completionItemArray.push(makeCompletionItem(property, position));
+    }
+
+    // 'brackets.add', 'autoClosingPairs.remove', etc. edit the default list rather than replace it
+    for (const [listProperty, pairSnippet] of [['brackets', '["$1", "$2"]'], ['autoClosingPairs', '{ "open": "$1", "close": "$2", "notIn": [ "string", "comment" ] }']]) {
+
+      completionItemArray.push(makeEditCompletionItem(`${ listProperty }.add`, `[${ pairSnippet }]`,
+        `add to the default ${ listProperty }`, position));
+
+      // nothing to remove unless the language has a default list
+      if (properties[listProperty]) completionItemArray.push(makeEditCompletionItem(`${ listProperty }.remove`, '[["$1", "$2"]]',
+        `remove from : ${ JSON.stringify(properties[listProperty]) }`, position));
     }
     return completionItemArray;
   }
@@ -156,7 +167,26 @@ function makeCompletionItem(key, position) {
 }
 
 /**
- * These "languages" will not be indexed for their properties 
+ * Make a CompletionItem for a '.add' or '.remove' key, which inserts a one pair snippet
+ *
+ * @param {string} label - like 'brackets.add'
+ * @param {string} snippetBody - the value to insert, with tab stops
+ * @param {string} detail
+ * @param {vscode.Position} position
+ * @returns - CompletionItemKind.Value
+ */
+function makeEditCompletionItem(label, snippetBody, detail, position) {
+
+  const item = new vscode.CompletionItem(label, vscode.CompletionItemKind.Value);
+  item.range = { inserting: new vscode.Range(position, position), replacing: new vscode.Range(position, new vscode.Position(position.line, position.character + 1)) };
+  item.detail = detail;
+  item.insertText = new vscode.SnippetString(`${ label }": ${ snippetBody }`);
+
+  return item;
+}
+
+/**
+ * These "languages" will not be indexed for their properties
  * because they do not have comments, for example.
  * @returns {string[]}
  */

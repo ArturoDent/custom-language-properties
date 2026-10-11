@@ -6,6 +6,133 @@ const jsonc = require('jsonc-parser');
 let languagesInSettingsSet = new Set(); // currently in the settings
 let previousLanguagesInSettingsSet = new Set(); // previously in the settings before change to configuration
 let droppedLanguages = new Set();   // languages dropped on new configuration
+let configDisposables = new Map();  // langID -> its current setLanguageConfiguration() disposable
+
+
+// the language configuration properties that can currently be used in the settings
+const supportedProperties = ['comments', 'brackets', 'autoClosingPairs'];
+
+
+/**
+ * Convert autoClosingPairs from the language-configuration.json form to the vscode api form:
+ * ["(", ")"] => {open, close} and notIn: ["string"] => [vscode.SyntaxTokenType.String]
+ * @param {any} pairs - the 'autoClosingPairs' value from the settings
+ * @returns {vscode.AutoClosingPair[]}
+ */
+function _normalizeAutoClosingPairs(pairs) {
+
+  if (!Array.isArray(pairs)) return [];
+
+  const tokenTypes = new Map([
+    ['string', vscode.SyntaxTokenType.String],
+    ['comment', vscode.SyntaxTokenType.Comment],
+    ['regex', vscode.SyntaxTokenType.RegEx]
+  ]);
+
+  /** @type {vscode.AutoClosingPair[]} */
+  const normalized = [];
+
+  for (const pair of pairs) {
+
+    if (Array.isArray(pair)) {
+      if (typeof pair[0] === 'string'  &&  typeof pair[1] === 'string') normalized.push({ open: pair[0], close: pair[1] });
+      continue;
+    }
+    if (typeof pair?.open !== 'string'  ||  typeof pair?.close !== 'string') continue;
+
+    /** @type {vscode.AutoClosingPair} */
+    const thisPair = { open: pair.open, close: pair.close };
+
+    if (Array.isArray(pair.notIn)) {
+      thisPair.notIn = [];
+      for (const token of pair.notIn) {
+        const tokenType = tokenTypes.get(String(token).toLowerCase());
+        if (tokenType !== undefined) thisPair.notIn.push(tokenType);
+      }
+    }
+    normalized.push(thisPair);
+  }
+  return normalized;
+}
+
+
+/**
+ * Convert any mix of ["(", ")"] and {open, close} pairs to [open, close] tuples.
+ * @param {any} pairs - a 'brackets' value, or a '.add'/'.remove' value from the settings
+ * @returns {[string, string][]}
+ */
+function _toPairTuples(pairs) {
+
+  if (!Array.isArray(pairs)) return [];
+
+  /** @type {[string, string][]} */
+  const tuples = [];
+
+  for (const pair of pairs) {
+
+    if (Array.isArray(pair)) {
+      if (typeof pair[0] === 'string'  &&  typeof pair[1] === 'string') tuples.push([pair[0], pair[1]]);
+    }
+    else if (typeof pair?.open === 'string'  &&  typeof pair?.close === 'string') tuples.push([pair.open, pair.close]);
+  }
+  return tuples;
+}
+
+
+/**
+ * Remove the pairs in a '.remove' setting from a list, matching on the open and close characters only.
+ * @template T
+ * @param {T[]} list - brackets tuples or autoClosingPairs objects
+ * @param {any} toRemove - the '.remove' value from the settings
+ * @param {(pair: T) => string[]} getOpenClose - returns [open, close] for a member of the list
+ * @returns {T[]}
+ */
+function _removePairs(list, toRemove, getOpenClose) {
+
+  const removeTuples = _toPairTuples(toRemove);
+
+  return list.filter(pair => {
+    const [open, close] = getOpenClose(pair);
+    return !removeTuples.some(remove => remove[0] === open  &&  remove[1] === close);
+  });
+}
+
+
+/**
+ * Append the pairs in a 'brackets.add' setting, skipping any pair already in the list.
+ * @param {[string, string][]} list
+ * @param {any} toAdd - the 'brackets.add' value from the settings
+ * @returns {[string, string][]}
+ */
+function _addBrackets(list, toAdd) {
+
+  const brackets = [...list];
+
+  for (const pair of _toPairTuples(toAdd)) {
+    if (!brackets.some(bracket => bracket[0] === pair[0]  &&  bracket[1] === pair[1])) brackets.push(pair);
+  }
+  return brackets;
+}
+
+
+/**
+ * Append the pairs in an 'autoClosingPairs.add' setting.
+ * A pair with the same 'open' as one already in the list replaces it, so its 'notIn' can be changed.
+ * @param {vscode.AutoClosingPair[]} list
+ * @param {any} toAdd - the 'autoClosingPairs.add' value from the settings
+ * @returns {vscode.AutoClosingPair[]}
+ */
+function _addAutoClosingPairs(list, toAdd) {
+
+  const autoClosingPairs = [...list];
+
+  for (const pair of _normalizeAutoClosingPairs(toAdd)) {
+    const index = autoClosingPairs.findIndex(existing => existing.open === pair.open);
+    if (index === -1) autoClosingPairs.push(pair);
+    else autoClosingPairs[index] = pair;
+  }
+  return autoClosingPairs;
+}
 
 
 /**
@@ -19,9 +146,11 @@ exports.getSettingsAndSetConfigs = async function (context) {
   // loop through all languages that appear in the 'custom-language-properties' settings
   // and add to the languagesInSettingsSet
 
+  const languageRE = new RegExp(`^(.*?)\\.(?=${ supportedProperties.join('|') })`, 'm');
+
   for (const langObject of Object.values(settingConfigs)) {
-    
-    const language = langObject[0].match(/^(.*?)\.(?=comments|brackets)/m);
+
+    const language = langObject[0].match(languageRE);
     if (language) languagesInSettingsSet.add(language[1]);
   }
 
@@ -73,8 +202,9 @@ async function _setConfig (settingConfigs, context, languageSet) {
 
   let disposable;
   // const configSet = new Set(['comments', 'brackets', 'indentationRules', 'onEnterRules', 'wordPattern']);
-   const configSet = new Set(['comments', 'brackets', 'autoClosingPairs']);
-  //const configSet = new Set(['comments', 'brackets']);
+  // these are kept from the default configuration, autoClosingPairs is only set if it is in the settings
+  const configSet = new Set(['comments', 'brackets']);
+  const re = new RegExp(`^(.*\\.)?(?<lang>.+)\\.(?=${ supportedProperties.join('|') })(?<prop>.*)`, 'm');
 
   languageSet.forEach(async langID => {
 
@@ -87,8 +217,14 @@ async function _setConfig (settingConfigs, context, languageSet) {
 
        // this is the default language configuration
       let thisLanguageConfig = jsonc.parse(fs.readFileSync(thisPath).toString());
-      
-      // // delete everything except comments, brackets and autoClosingPairs at present
+
+      // kept for 'autoClosingPairs.add' and 'autoClosingPairs.remove', which edit the default list
+      const defaultAutoClosingPairs = thisLanguageConfig.autoClosingPairs;
+
+      // 'brackets' and 'autoClosingPairs' settings: replace = the plain key, add/remove = the suffix keys
+      /** @type {Object<string, {replace?: any, add?: any, remove?: any}>} */
+      const listEdits = { brackets: {}, autoClosingPairs: {} };
+
       // delete everything except comments and brackets at present
       for (const property in thisLanguageConfig) {
         if (!configSet.has(property)) delete thisLanguageConfig[property];
@@ -115,9 +251,6 @@ async function _setConfig (settingConfigs, context, languageSet) {
 
         let entry = settingConfigs[index];
 
-        //const re = /^(.*\.)?(?<lang>.+)\.(?=comments|brackets)(?<prop>.*)/m;
-        const re = /^(.*\.)?(?<lang>.+)\.(?=comments|brackets|autoClosingPairs)(?<prop>.*)/m;
-
         let found = entry[0].match(re);
 
         // get 'html.erb' from 'html.erb.comments.lineComment'
@@ -138,23 +271,49 @@ async function _setConfig (settingConfigs, context, languageSet) {
           // need to set BOTH comment:lineComment and comment:blockComment, 
           //   else it is deleted from the configuration!!
           // will overwrite the default config with matching entry in the settings
-          if (temp.length === 2  &&  configSet.has(temp[0])) {
+          // e.g., prop = "brackets.add" or "autoClosingPairs.remove", applied after this loop
+          if (temp.length === 2  &&  listEdits[temp[0]]  &&  (temp[1] === 'add'  ||  temp[1] === 'remove')) {
+            listEdits[temp[0]][temp[1]] = entry[1];
+          }
+          else if (temp.length === 2  &&  configSet.has(temp[0])) {
             thisLanguageConfig[temp[0]][temp[1]] = entry[1];
           }
         }
-        // this works except for notIn[]
-        // else if (configSet.has(prop)  &&  prop === 'autoClosingPairs'){
-        //   thisLanguageConfig['autoClosingPairs'] = entry[1];
-        // }
-        // prop = "brackets[[]] brackets is an array of arrays
-
+        // prop = "brackets" or "autoClosingPairs", replaces the whole default list, applied after this loop
+        else if (listEdits[prop]) {
+          listEdits[prop].replace = entry[1];
+        }
         else if (configSet.has(prop)) {
           thisLanguageConfig[prop] = entry[1];
         }
       }
 
+      // brackets is an array of arrays, the setting alone is used as is
+      const bracketEdits = listEdits.brackets;
+
+      if (bracketEdits.add !== undefined  ||  bracketEdits.remove !== undefined) {
+        let brackets = _toPairTuples(bracketEdits.replace !== undefined ? bracketEdits.replace : thisLanguageConfig.brackets);
+        brackets = _removePairs(brackets, bracketEdits.remove, pair => pair);
+        thisLanguageConfig.brackets = _addBrackets(brackets, bracketEdits.add);
+      }
+      else if (bracketEdits.replace !== undefined) thisLanguageConfig.brackets = bracketEdits.replace;
+
+      // autoClosingPairs is an array of objects, converted to the form the vscode api needs
+      // it is only set if it is in the settings in some form
+      const pairEdits = listEdits.autoClosingPairs;
+
+      if (pairEdits.replace !== undefined  ||  pairEdits.add !== undefined  ||  pairEdits.remove !== undefined) {
+        let autoClosingPairs = _normalizeAutoClosingPairs(pairEdits.replace !== undefined ? pairEdits.replace : defaultAutoClosingPairs);
+        autoClosingPairs = _removePairs(autoClosingPairs, pairEdits.remove, pair => [pair.open, pair.close]);
+        thisLanguageConfig.autoClosingPairs = _addAutoClosingPairs(autoClosingPairs, pairEdits.add);
+      }
+
+      // remove this language's previous configuration, else a removed property (like autoClosingPairs) lingers
+      configDisposables.get(originalLangID)?.dispose();
+
       // use full `html.erb' ere
       disposable = vscode.languages.setLanguageConfiguration( originalLangID, thisLanguageConfig );
+      configDisposables.set(originalLangID, disposable);
       context.subscriptions.push(disposable);
     }
     // else couldn't set config, languageConfigs/${ langID }-language.json doesn't exist

@@ -1,79 +1,78 @@
 {
-	"name": "custom-language-syntax",
-	"displayName": "Custom Language Properties",
-	"publisher": "ArturoDent",
-	"description": "Create your custom language properties",
-	"version": "0.6.6",
-	"preview": true,
-	"license": "MIT",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/ArturoDent/custom-language-properties"
-	},
-	"engines": {
-		"vscode": "^1.83.0"
-	},
+  "name": "custom-language-syntax",
+  "displayName": "Custom Language Properties",
+  "publisher": "ArturoDent",
+  "description": "Create your custom language properties",
+  "version": "0.6.8",
+  "preview": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ArturoDent/custom-language-properties"
+  },
+  "engines": {
+    "vscode": "^1.83.0"
+  },
   "extensionKind": [
     "ui",
     "workspace"
   ],
-	"categories": [
-		"Other"
-	],
-	"keywords": [
-		"custom",
-		"language",
-		"comments",
-		"line comment",
-		"block comment"
-	],
-	"activationEvents": [
-		"onStartupFinished"
-	],
-	"main": "./src/extension.js",
-	"browser": "./src/extension.js",
-	"contributes": {
-		"configuration": {
-			"title": "Custom Language Properties",
-			"properties": {
-				"custom-language-properties": {
-					"type": "object",
-					"description": "Custom language syntax, like `//* `.",
-					"markdownDescription": "Custom language syntax, like `//* `."
-				}
-			}
-		},
-
-		"commands": [
-			{
-				"command": "custom-language-syntax.showConfigFile",
-				"title": "Show language configuration for current editor",
-				"category": "Custom Language Properties"
-			},
-			{
-				"command": "custom-language-syntax.rebuildConfigFiles",
-				"title": "Check for new language extensions",
-				"category": "Custom Language Properties"
-			}
-		]
-	},
-	"scripts": {
-		"lint": "eslint .",
-		"pretest": "npm run lint",
-		"test": "node ./test/runTest.js"
-	},
-	"devDependencies": {
-		"@types/glob": "^7.1.1",
-		"@types/mocha": "^7.0.2",
-		"@types/node": "^13.13.39",
-		"@types/vscode": "^1.52.0",
-		"eslint": "^6.8.0",
-		"glob": "^7.1.6",
-		"mocha": "^7.1.2",
-		"typescript": "^3.8.3",
-		"vscode-test": "^1.3.0"
-	},
-	"dependencies": {
-		"jsonc-parser": "^3.0.0"
-	}
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "custom",
+    "language",
+    "comments",
+    "line comment",
+    "block comment"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./src/extension.js",
+  "browser": "./src/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "Custom Language Properties",
+      "properties": {
+        "custom-language-properties": {
+          "type": "object",
+          "description": "Custom language syntax, like `//* `.",
+          "markdownDescription": "Custom language syntax, like `//* `."
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "custom-language-syntax.showConfigFile",
+        "title": "Show language configuration for current editor",
+        "category": "Custom Language Properties"
+      },
+      {
+        "command": "custom-language-syntax.rebuildConfigFiles",
+        "title": "Check for new language extensions",
+        "category": "Custom Language Properties"
+      }
+    ]
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "pretest": "npm run lint",
+    "test": "node ./test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/glob": "^7.2.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^26.6.4",
+    "@types/vscode": "^1.83.0",
+    "eslint": "^6.8.0",
+    "glob": "^7.1.6",
+    "mocha": "^7.1.2",
+    "typescript": "^7.0.2",
+    "vscode-test": "^1.3.0"
+  },
+  "dependencies": {
+    "jsonc-parser": "^3.0.0"
+  }
 }
