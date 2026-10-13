@@ -142,7 +142,10 @@ function _addAutoClosingPairs(list, toAdd) {
 exports.getSettingsAndSetConfigs = async function (context) {
   
   let settingConfigs = await _load();
-  
+
+  // start fresh, else a language removed from the settings is never seen as dropped
+  languagesInSettingsSet.clear();
+
   // loop through all languages that appear in the 'custom-language-properties' settings
   // and add to the languagesInSettingsSet
 
@@ -156,7 +159,7 @@ exports.getSettingsAndSetConfigs = async function (context) {
 
   // compare the previousLanguagesInSettingsSet to languagesInSettingsSet
   // updates droppedLanguages Set and sets their configs to the default state
-  _updateDroppedLanguages(settingConfigs, context);
+  _updateDroppedLanguages();
   previousLanguagesInSettingsSet = new Set(languagesInSettingsSet);
 
   languagesInSettingsSet.forEach(async currentLang => 
@@ -176,23 +179,35 @@ async function _load() {
 
 
 /**
- * Set the configs for any languages dropped from the settings configuration.
- * @param {[string, any][]} settingConfigs 
- * @param {vscode.ExtensionContext} context 
+ * Remove the configs for any languages dropped from the settings configuration.
  */
-async function _updateDroppedLanguages  (settingConfigs, context) {
+function _updateDroppedLanguages  () {
   
   droppedLanguages.clear();
   previousLanguagesInSettingsSet.forEach(prevLang => {
       if (!languagesInSettingsSet.has(prevLang)) droppedLanguages.add(prevLang);
     });
 
-  if (droppedLanguages.size) await _setConfig(settingConfigs, context, droppedLanguages);
+  // disposing a language's configuration restores its default configuration
+  droppedLanguages.forEach(droppedLang => {
+    configDisposables.get(droppedLang)?.dispose();
+    configDisposables.delete(droppedLang);
+  });
 }
 
 
 /**
- * SetLanguageConfiguration() for the given languageID's, both current and dropped languages.
+ * Dispose all the current setLanguageConfiguration() disposables, on deactivation.
+ */
+exports.disposeConfigs = function () {
+
+  configDisposables.forEach(disposable => disposable.dispose());
+  configDisposables.clear();
+}
+
+
+/**
+ * SetLanguageConfiguration() for the given languageID's.
  *
  * @param {[string, any][]} settingConfigs - this extension's settings
  * @param {vscode.ExtensionContext} context
@@ -313,8 +328,8 @@ async function _setConfig (settingConfigs, context, languageSet) {
 
       // use full `html.erb' ere
       disposable = vscode.languages.setLanguageConfiguration( originalLangID, thisLanguageConfig );
+      // not pushed to context.subscriptions, which would keep every replaced disposable, see disposeConfigs()
       configDisposables.set(originalLangID, disposable);
-      context.subscriptions.push(disposable);
     }
     // else couldn't set config, languageConfigs/${ langID }-language.json doesn't exist
   })

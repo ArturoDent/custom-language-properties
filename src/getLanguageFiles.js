@@ -169,7 +169,8 @@ exports.reduceFiles = async function (context, extConfigDirectory, extLangPropDi
     /** @type  {Object<string, string>}*/
     let fileObject = {};
     
-    let langJSON = require(path.join(extConfigDirectory, lang));
+    // not require(), which caches the file so a rebuilt file is not seen until a reload
+    let langJSON = jsonc.parse(fs.readFileSync(path.join(extConfigDirectory, lang)).toString());
 
     configSet.forEach(config => {
 

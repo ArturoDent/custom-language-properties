@@ -65,8 +65,11 @@ async function activate(context) {
     if (event.affectsConfiguration('custom-language-properties'))
       await extSettings.getSettingsAndSetConfigs(context);
       
-    context.subscriptions.push(disposable);
   });
+  context.subscriptions.push(disposable);
+
+  // the setLanguageConfiguration() disposables are owned by extensionSettings.js
+  context.subscriptions.push({ dispose: extSettings.disposeConfigs });
 }
 
 exports.activate = activate;
