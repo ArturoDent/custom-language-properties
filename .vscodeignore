@@ -1,5 +1,7 @@
 .vscode/**
 .vscode-test/**
+.claude/**
+.eslintignore
 test/**
 .gitignore
 vsc-extension-quickstart.md

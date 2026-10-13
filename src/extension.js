@@ -70,6 +70,9 @@ async function activate(context) {
 
   // the setLanguageConfiguration() disposables are owned by extensionSettings.js
   context.subscriptions.push({ dispose: extSettings.disposeConfigs });
+
+  // for the tests, to check that the subscriptions do not grow
+  return { subscriptionCount: () => context.subscriptions.length };
 }
 
 exports.activate = activate;

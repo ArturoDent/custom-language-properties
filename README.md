@@ -189,6 +189,7 @@ Properties, like `comments.lineComment`  already used in the setting for a langu
 0.6.5 - Added a notification for when new languages have been found.  
 0.6.6 - Removed git dependency?  How did it get there at all?  
 0.6.7 - `autoClosingPairs` support is back, `notIn` fixed.  
-0.6.8 - Added `.add` and `.remove` for `brackets` and `autoClosingPairs`, to add or remove a single pair.  
+0.6.8 - Added `.add` and `.remove` for `brackets` and `autoClosingPairs`.  
+0.6.9 - fixed memory leaks and added tests.  
 
 --------------
