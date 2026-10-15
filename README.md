@@ -79,7 +79,9 @@ For example, if you prefer your line comments to look like &nbsp; `// *  ` &nbsp
 }
 ```
 
-  These are **NOT** additional comment styles, the default comment styles will be replaced by those in your setting.  I suggest you do not go crazy with comment style for example, as other editors may not recognize them as comments.  So something like &nbsp; `// **` &nbsp; is fine (the leading &nbsp; `//` will still be recognized as a comment) but &nbsp; `**` &nbsp;  by itself will not be recognized by another editor or person without this extension and that setting.
+  These are **NOT additional** comment styles, the default comment styles will be replaced by those in your setting.  It is not possible to set multiple comment styles per language if the underlying grammar does not allow it.  It may be possible to set alternate comment styles that could be toggled (request that if you want it).  
+
+  I suggest you do not go crazy with comment styles for example, as other editors may not recognize them as comments.  So something like &nbsp; `// **` &nbsp; is fine (the leading &nbsp; `//` will still be recognized as a comment) but &nbsp; `**` &nbsp;  by itself will not be recognized by another editor or person without this extension and that setting.
 
   The `brackets` setting will replace the entire default language `brackets` configuration.  So you probably don't want to do that but instead add another `brackets` option to the end of the default setting.  Above is the python default `brackets` setting, to add to it use `brackets.add` with just your addition, like so:
 

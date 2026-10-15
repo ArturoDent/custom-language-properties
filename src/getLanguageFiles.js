@@ -14,16 +14,16 @@ exports.getLanguageConfigFiles = async function (context, extConfigDirectory) {
   let newLanguageCount = 0;
 
   /** @type {string[]} */
-  let newLanguages  = [];
+  let newLanguages = [];
 
-  if (!fs.existsSync(extConfigDirectory)) fs.mkdirSync(extConfigDirectory,{ recursive: true });
+  if (!fs.existsSync(extConfigDirectory)) fs.mkdirSync(extConfigDirectory, {recursive: true});
 
   let langConfigFilePath = null;
 
   for (const _ext of vscode.extensions.all) {
-    
-    if (_ext.packageJSON.contributes  &&  _ext.packageJSON.contributes.languages) {
-      
+
+    if (_ext.packageJSON.contributes && _ext.packageJSON.contributes.languages) {
+
       const contributedLanguages = _ext.packageJSON.contributes.languages;  // may be an array
 
       contributedLanguages.forEach((/** @type {{ id: string; }} */ packageLang, /** @type {number} */ index) => {
@@ -31,25 +31,25 @@ exports.getLanguageConfigFiles = async function (context, extConfigDirectory) {
         // "languages" to skip, like plaintext, etc. = no configuration properties that we are interested in
         let skipLangs = _getLanguagesToSkip();
 
-        if (!skipLangs?.includes(packageLang.id)  &&  _ext.packageJSON.contributes.languages[index].configuration) {
+        if (!skipLangs?.includes(packageLang.id) && _ext.packageJSON.contributes.languages[index].configuration) {
 
           langConfigFilePath = path.join(
             _ext.extensionPath,
             _ext.packageJSON.contributes.languages[index].configuration
           );
-          
-          if (!!langConfigFilePath  &&  fs.existsSync(langConfigFilePath)) {
+
+          if (!!langConfigFilePath && fs.existsSync(langConfigFilePath)) {
             let langID = packageLang.id.replace(/^(.*\.)?(.+)$/m, '$2');
             const thisConfig = JSON.stringify(jsonc.parse(fs.readFileSync(langConfigFilePath).toString()));
-            
+
             // const destPath = path.join(extConfigDirectory, `${packageLang.id}-language.json`);
             const destPath = path.join(extConfigDirectory, `${langID}-language.json`);
             if (!fs.existsSync(destPath)) {
               newLanguageCount++;
               newLanguages.push(`${packageLang.id}`);
             }
-            
-            fs.writeFileSync(destPath, thisConfig, { flag: 'w' });
+
+            fs.writeFileSync(destPath, thisConfig, {flag: 'w'});
           }
           // destPath = "c:\\Users\\Mark\\AppData\\Roaming\\Code - Insiders\\User\\globalStorage\\arturodent.custom-language-syntax\\languageConfigs\\erb-language.json"
         }
@@ -71,7 +71,7 @@ exports.getLanguageConfigFile = async function (langID) {
 
     let _ext = vscode.extensions.all[i];
 
-    if (_ext.packageJSON.contributes  &&  _ext.packageJSON.contributes.languages) {
+    if (_ext.packageJSON.contributes && _ext.packageJSON.contributes.languages) {
 
       const contributedLanguages = _ext.packageJSON.contributes.languages;  // may be an array
 
@@ -85,7 +85,7 @@ exports.getLanguageConfigFile = async function (langID) {
           let skipLangs = _getLanguagesToSkip();
 
           // if (!skipLangs?.includes(packageLang.id)  &&  _ext.packageJSON.contributes.languages[index].configuration) {
-          if (!skipLangs?.includes(packageLang.id)  &&  _ext.packageJSON.contributes.languages[j].configuration) {
+          if (!skipLangs?.includes(packageLang.id) && _ext.packageJSON.contributes.languages[j].configuration) {
 
 
             langConfigFilePath = path.join(
@@ -95,7 +95,7 @@ exports.getLanguageConfigFile = async function (langID) {
 
             );
 
-            if (!!langConfigFilePath  &&  fs.existsSync(langConfigFilePath)) {
+            if (!!langConfigFilePath && fs.existsSync(langConfigFilePath)) {
               thisConfig = jsonc.parse(fs.readFileSync(langConfigFilePath).toString());
               return thisConfig;
             }
@@ -116,35 +116,35 @@ exports.showLanguageConfigFile = async function (langConfigFilePath) {
 
   let success = false;
 
+  // The loop itself is already cheap. vscode.extensions.all is an in-memory array, typically 100-300 entries, and packageJSON has already been parsed. Walking it with property checks takes well under a millisecond. The only slow parts are the fs.existsSync and readFileSync calls, and those run only for the match. You won't notice a difference when running a command.
+
   for (const _ext of vscode.extensions.all) {
 
-    if (_ext.packageJSON.contributes  &&  _ext.packageJSON.contributes.languages) {
-      
+    if (_ext.packageJSON.contributes && _ext.packageJSON.contributes.languages) {
+
       const packageLang = _ext.packageJSON.contributes.languages; // could be an array
 
-      let index = 0;
-
       for (const lang of packageLang) {
-      
-        if (lang.id === langConfigFilePath) {
 
-          let filePath = path.join(
-            _ext.extensionPath,
-            _ext.packageJSON.contributes.languages[index].configuration
-          );
-          if (!!langConfigFilePath  &&  fs.existsSync(filePath)) {
+        // several extensions may contribute the same language id, not all with a configuration file
+        if (lang.id === langConfigFilePath && lang.configuration) {
+
+          let filePath = path.join(_ext.extensionPath, lang.configuration);
+
+          if (fs.existsSync(filePath)) {
             await vscode.window.showTextDocument(vscode.Uri.file(filePath));
             await vscode.commands.executeCommand('editor.action.formatDocument');
             success = true;
+            break;
           }
-          break;
         }
       };
     }
 
     if (success) break;
-    // TODO else { show notification message can't find a language-configuration.json file }
   }
+
+  if (!success) vscode.window.showInformationMessage(`Could not find a language configuration file for "${langConfigFilePath}".`);
 }
 
 
@@ -158,17 +158,17 @@ exports.showLanguageConfigFile = async function (langConfigFilePath) {
  */
 exports.reduceFiles = async function (context, extConfigDirectory, extLangPropDirectory) {
 
-  if (!fs.existsSync(extLangPropDirectory)) fs.mkdirSync(extLangPropDirectory,{ recursive: true });
+  if (!fs.existsSync(extLangPropDirectory)) fs.mkdirSync(extLangPropDirectory, {recursive: true});
 
   // const configSet = new Set(['comments', 'brackets', 'indentationRules', 'onEnterRules', 'wordPattern']);
   const configSet = new Set(['comments', 'brackets', 'indentationRules', 'onEnterRules', 'wordPattern', 'autoClosingPairs']);
   const configDir = fs.readdirSync(extConfigDirectory, 'utf8');
 
   for (const lang of configDir) {
-    
+
     /** @type  {Object<string, string>}*/
     let fileObject = {};
-    
+
     // not require(), which caches the file so a rebuilt file is not seen until a reload
     let langJSON = jsonc.parse(fs.readFileSync(path.join(extConfigDirectory, lang)).toString());
 
@@ -196,7 +196,7 @@ exports.reduceFiles = async function (context, extConfigDirectory, extLangPropDi
             fileObject['wordPattern'] = langJSON.wordPattern;
             break;
 
-            // TODO add autoClosingPairs from proposed api
+          // TODO add autoClosingPairs from proposed api
           case 'autoClosingPairs':
             // {
             //   "open": "{",
@@ -229,7 +229,7 @@ exports.reduceFiles = async function (context, extConfigDirectory, extLangPropDi
  * because they do not have comments or other applicable properties.
  * @returns {string[]}
  */
-function _getLanguagesToSkip  () {
+function _getLanguagesToSkip() {
   // return ['log', 'Log', 'search-result', 'plaintext', 'scminput', 'properties', 'csv', 'tsv', 'excel'];
   return ['log', 'Log', 'search-result', 'plaintext', 'scminput', 'csv', 'tsv', 'excel'];
 }

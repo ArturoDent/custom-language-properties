@@ -35,13 +35,13 @@ function _normalizeAutoClosingPairs(pairs) {
   for (const pair of pairs) {
 
     if (Array.isArray(pair)) {
-      if (typeof pair[0] === 'string'  &&  typeof pair[1] === 'string') normalized.push({ open: pair[0], close: pair[1] });
+      if (typeof pair[0] === 'string' && typeof pair[1] === 'string') normalized.push({open: pair[0], close: pair[1]});
       continue;
     }
-    if (typeof pair?.open !== 'string'  ||  typeof pair?.close !== 'string') continue;
+    if (typeof pair?.open !== 'string' || typeof pair?.close !== 'string') continue;
 
     /** @type {vscode.AutoClosingPair} */
-    const thisPair = { open: pair.open, close: pair.close };
+    const thisPair = {open: pair.open, close: pair.close};
 
     if (Array.isArray(pair.notIn)) {
       thisPair.notIn = [];
@@ -71,9 +71,9 @@ function _toPairTuples(pairs) {
   for (const pair of pairs) {
 
     if (Array.isArray(pair)) {
-      if (typeof pair[0] === 'string'  &&  typeof pair[1] === 'string') tuples.push([pair[0], pair[1]]);
+      if (typeof pair[0] === 'string' && typeof pair[1] === 'string') tuples.push([pair[0], pair[1]]);
     }
-    else if (typeof pair?.open === 'string'  &&  typeof pair?.close === 'string') tuples.push([pair.open, pair.close]);
+    else if (typeof pair?.open === 'string' && typeof pair?.close === 'string') tuples.push([pair.open, pair.close]);
   }
   return tuples;
 }
@@ -93,7 +93,7 @@ function _removePairs(list, toRemove, getOpenClose) {
 
   return list.filter(pair => {
     const [open, close] = getOpenClose(pair);
-    return !removeTuples.some(remove => remove[0] === open  &&  remove[1] === close);
+    return !removeTuples.some(remove => remove[0] === open && remove[1] === close);
   });
 }
 
@@ -109,7 +109,7 @@ function _addBrackets(list, toAdd) {
   const brackets = [...list];
 
   for (const pair of _toPairTuples(toAdd)) {
-    if (!brackets.some(bracket => bracket[0] === pair[0]  &&  bracket[1] === pair[1])) brackets.push(pair);
+    if (!brackets.some(bracket => bracket[0] === pair[0] && bracket[1] === pair[1])) brackets.push(pair);
   }
   return brackets;
 }
@@ -140,7 +140,7 @@ function _addAutoClosingPairs(list, toAdd) {
  * @param {vscode.ExtensionContext} context 
  */
 exports.getSettingsAndSetConfigs = async function (context) {
-  
+
   let settingConfigs = await _load();
 
   // start fresh, else a language removed from the settings is never seen as dropped
@@ -149,7 +149,7 @@ exports.getSettingsAndSetConfigs = async function (context) {
   // loop through all languages that appear in the 'custom-language-properties' settings
   // and add to the languagesInSettingsSet
 
-  const languageRE = new RegExp(`^(.*?)\\.(?=${ supportedProperties.join('|') })`, 'm');
+  const languageRE = new RegExp(`^(.*?)\\.(?=${supportedProperties.join('|')})`, 'm');
 
   for (const langObject of Object.values(settingConfigs)) {
 
@@ -162,7 +162,7 @@ exports.getSettingsAndSetConfigs = async function (context) {
   _updateDroppedLanguages();
   previousLanguagesInSettingsSet = new Set(languagesInSettingsSet);
 
-  languagesInSettingsSet.forEach(async currentLang => 
+  languagesInSettingsSet.forEach(async currentLang =>
     await _setConfig(settingConfigs, context, new Set([currentLang])));
 }
 
@@ -181,12 +181,12 @@ async function _load() {
 /**
  * Remove the configs for any languages dropped from the settings configuration.
  */
-function _updateDroppedLanguages  () {
-  
+function _updateDroppedLanguages() {
+
   droppedLanguages.clear();
   previousLanguagesInSettingsSet.forEach(prevLang => {
-      if (!languagesInSettingsSet.has(prevLang)) droppedLanguages.add(prevLang);
-    });
+    if (!languagesInSettingsSet.has(prevLang)) droppedLanguages.add(prevLang);
+  });
 
   // disposing a language's configuration restores its default configuration
   droppedLanguages.forEach(droppedLang => {
@@ -213,24 +213,24 @@ exports.disposeConfigs = function () {
  * @param {vscode.ExtensionContext} context
  * @param {Set<string>} languageSet - an array of languageID's
  */
-async function _setConfig (settingConfigs, context, languageSet) {
+async function _setConfig(settingConfigs, context, languageSet) {
 
   let disposable;
   // const configSet = new Set(['comments', 'brackets', 'indentationRules', 'onEnterRules', 'wordPattern']);
   // these are kept from the default configuration, autoClosingPairs is only set if it is in the settings
   const configSet = new Set(['comments', 'brackets']);
-  const re = new RegExp(`^(.*\\.)?(?<lang>.+)\\.(?=${ supportedProperties.join('|') })(?<prop>.*)`, 'm');
+  const re = new RegExp(`^(.*\\.)?(?<lang>.+)\\.(?=${supportedProperties.join('|')})(?<prop>.*)`, 'm');
 
   languageSet.forEach(async langID => {
 
     const originalLangID = langID;
     // if langID = 'html.erb' get only the 'erb' part
     langID = langID.replace(/^(.*\.)?(.+)$/m, '$2');
-    const thisPath = path.join(context.globalStorageUri.fsPath, 'languageConfigs', `${ langID }-language.json`);
+    const thisPath = path.join(context.globalStorageUri.fsPath, 'languageConfigs', `${langID}-language.json`);
 
-    if (!!thisPath  &&  fs.existsSync(thisPath)) {
+    if (!!thisPath && fs.existsSync(thisPath)) {
 
-       // this is the default language configuration
+      // this is the default language configuration
       let thisLanguageConfig = jsonc.parse(fs.readFileSync(thisPath).toString());
 
       // kept for 'autoClosingPairs.add' and 'autoClosingPairs.remove', which edit the default list
@@ -238,7 +238,7 @@ async function _setConfig (settingConfigs, context, languageSet) {
 
       // 'brackets' and 'autoClosingPairs' settings: replace = the plain key, add/remove = the suffix keys
       /** @type {Object<string, {replace?: any, add?: any, remove?: any}>} */
-      const listEdits = { brackets: {}, autoClosingPairs: {} };
+      const listEdits = {brackets: {}, autoClosingPairs: {}};
 
       // delete everything except comments and brackets at present
       for (const property in thisLanguageConfig) {
@@ -270,8 +270,8 @@ async function _setConfig (settingConfigs, context, languageSet) {
 
         // get 'html.erb' from 'html.erb.comments.lineComment'
         // let found = entry[0].match(/^(.*\.)?(?<lang>.+)\.(?=comments|brackets)/m);
-        
-        if (!found?.groups  ||  found.groups?.lang !== langID) continue;
+
+        if (!found?.groups || found.groups?.lang !== langID) continue;
 
         let prop = found.groups?.prop;
 
@@ -287,14 +287,15 @@ async function _setConfig (settingConfigs, context, languageSet) {
           //   else it is deleted from the configuration!!
           // will overwrite the default config with matching entry in the settings
           // e.g., prop = "brackets.add" or "autoClosingPairs.remove", applied after this loop
-          if (temp.length === 2  &&  listEdits[temp[0]]  &&  (temp[1] === 'add'  ||  temp[1] === 'remove')) {
+          if (temp.length === 2 && listEdits[temp[0]] && (temp[1] === 'add' || temp[1] === 'remove')) {
             listEdits[temp[0]][temp[1]] = entry[1];
           }
-          else if (temp.length === 2  &&  configSet.has(temp[0])) {
+          else if (temp.length === 2 && configSet.has(temp[0])) {
             thisLanguageConfig[temp[0]][temp[1]] = entry[1];
           }
         }
-        // prop = "brackets" or "autoClosingPairs", replaces the whole default list, applied after this loop
+        // prop = "brackets" or "autoClosingPairs", replaces the whole default list, applied after this 
+        // !prop.includes('.') so no add/remove
         else if (listEdits[prop]) {
           listEdits[prop].replace = entry[1];
         }
@@ -306,7 +307,7 @@ async function _setConfig (settingConfigs, context, languageSet) {
       // brackets is an array of arrays, the setting alone is used as is
       const bracketEdits = listEdits.brackets;
 
-      if (bracketEdits.add !== undefined  ||  bracketEdits.remove !== undefined) {
+      if (bracketEdits.add !== undefined || bracketEdits.remove !== undefined) {
         let brackets = _toPairTuples(bracketEdits.replace !== undefined ? bracketEdits.replace : thisLanguageConfig.brackets);
         brackets = _removePairs(brackets, bracketEdits.remove, pair => pair);
         thisLanguageConfig.brackets = _addBrackets(brackets, bracketEdits.add);
@@ -317,7 +318,8 @@ async function _setConfig (settingConfigs, context, languageSet) {
       // it is only set if it is in the settings in some form
       const pairEdits = listEdits.autoClosingPairs;
 
-      if (pairEdits.replace !== undefined  ||  pairEdits.add !== undefined  ||  pairEdits.remove !== undefined) {
+      // order is replaceALL,remove,add
+      if (pairEdits.replace !== undefined || pairEdits.add !== undefined || pairEdits.remove !== undefined) {
         let autoClosingPairs = _normalizeAutoClosingPairs(pairEdits.replace !== undefined ? pairEdits.replace : defaultAutoClosingPairs);
         autoClosingPairs = _removePairs(autoClosingPairs, pairEdits.remove, pair => [pair.open, pair.close]);
         thisLanguageConfig.autoClosingPairs = _addAutoClosingPairs(autoClosingPairs, pairEdits.add);
@@ -326,8 +328,7 @@ async function _setConfig (settingConfigs, context, languageSet) {
       // remove this language's previous configuration, else a removed property (like autoClosingPairs) lingers
       configDisposables.get(originalLangID)?.dispose();
 
-      // use full `html.erb' ere
-      disposable = vscode.languages.setLanguageConfiguration( originalLangID, thisLanguageConfig );
+      disposable = vscode.languages.setLanguageConfiguration(originalLangID, thisLanguageConfig);
       // not pushed to context.subscriptions, which would keep every replaced disposable, see disposeConfigs()
       configDisposables.set(originalLangID, disposable);
     }
