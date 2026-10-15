@@ -18,93 +18,33 @@ exports.getLanguageConfigFiles = async function (context, extConfigDirectory) {
 
   if (!fs.existsSync(extConfigDirectory)) fs.mkdirSync(extConfigDirectory, {recursive: true});
 
-  let langConfigFilePath = null;
+  for (const [id, langConfigFilePath] of _getLangConfigPaths()) {
 
-  for (const _ext of vscode.extensions.all) {
+    let langID = id.replace(/^(.*\.)?(.+)$/m, '$2');
+    const thisConfig = JSON.stringify(jsonc.parse(fs.readFileSync(langConfigFilePath).toString()));
 
-    if (_ext.packageJSON.contributes && _ext.packageJSON.contributes.languages) {
-
-      const contributedLanguages = _ext.packageJSON.contributes.languages;  // may be an array
-
-      contributedLanguages.forEach((/** @type {{ id: string; }} */ packageLang, /** @type {number} */ index) => {
-
-        // "languages" to skip, like plaintext, etc. = no configuration properties that we are interested in
-        let skipLangs = _getLanguagesToSkip();
-
-        if (!skipLangs?.includes(packageLang.id) && _ext.packageJSON.contributes.languages[index].configuration) {
-
-          langConfigFilePath = path.join(
-            _ext.extensionPath,
-            _ext.packageJSON.contributes.languages[index].configuration
-          );
-
-          if (!!langConfigFilePath && fs.existsSync(langConfigFilePath)) {
-            let langID = packageLang.id.replace(/^(.*\.)?(.+)$/m, '$2');
-            const thisConfig = JSON.stringify(jsonc.parse(fs.readFileSync(langConfigFilePath).toString()));
-
-            // const destPath = path.join(extConfigDirectory, `${packageLang.id}-language.json`);
-            const destPath = path.join(extConfigDirectory, `${langID}-language.json`);
-            if (!fs.existsSync(destPath)) {
-              newLanguageCount++;
-              newLanguages.push(`${packageLang.id}`);
-            }
-
-            fs.writeFileSync(destPath, thisConfig, {flag: 'w'});
-          }
-          // destPath = "c:\\Users\\Mark\\AppData\\Roaming\\Code - Insiders\\User\\globalStorage\\arturodent.custom-language-syntax\\languageConfigs\\erb-language.json"
-        }
-      });
+    // const destPath = path.join(extConfigDirectory, `${id}-language.json`);
+    const destPath = path.join(extConfigDirectory, `${langID}-language.json`);
+    if (!fs.existsSync(destPath)) {
+      newLanguageCount++;
+      newLanguages.push(`${id}`);
     }
+
+    fs.writeFileSync(destPath, thisConfig, {flag: 'w'});
+    // destPath = "c:\\Users\\Mark\\AppData\\Roaming\\Code - Insiders\\User\\globalStorage\\arturodent.custom-language-syntax\\languageConfigs\\erb-language.json"
   }
   return {newLanguageCount, newLanguages};
 };
 
 /**
- * @param {string} langID - 
+ * @param {string} langID -
  */
 exports.getLanguageConfigFile = async function (langID) {
 
-  let thisConfig = {};
-  let langConfigFilePath = null;
+  const langConfigFilePath = _getLangConfigPaths().get(langID);
+  if (!langConfigFilePath) return {};
 
-  for (let i = 0; i < vscode.extensions.all.length; i++) {
-
-    let _ext = vscode.extensions.all[i];
-
-    if (_ext.packageJSON.contributes && _ext.packageJSON.contributes.languages) {
-
-      const contributedLanguages = _ext.packageJSON.contributes.languages;  // may be an array
-
-      for (let j = 0; j < contributedLanguages.length; j++) {
-
-        let packageLang = contributedLanguages[j];
-
-        if (packageLang.id === langID) {
-
-          // "languages" to skip, like plaintext, etc. = no configuration properties that we are interested in
-          let skipLangs = _getLanguagesToSkip();
-
-          // if (!skipLangs?.includes(packageLang.id)  &&  _ext.packageJSON.contributes.languages[index].configuration) {
-          if (!skipLangs?.includes(packageLang.id) && _ext.packageJSON.contributes.languages[j].configuration) {
-
-
-            langConfigFilePath = path.join(
-              _ext.extensionPath,
-              // _ext.packageJSON.contributes.languages[index].configuration
-              _ext.packageJSON.contributes.languages[j].configuration
-
-            );
-
-            if (!!langConfigFilePath && fs.existsSync(langConfigFilePath)) {
-              thisConfig = jsonc.parse(fs.readFileSync(langConfigFilePath).toString());
-              return thisConfig;
-            }
-          }
-        }
-      }
-    }
-  }
-  return thisConfig;
+  return jsonc.parse(fs.readFileSync(langConfigFilePath).toString());
 };
 
 
@@ -114,38 +54,55 @@ exports.getLanguageConfigFile = async function (langID) {
  */
 exports.showLanguageConfigFile = async function (langConfigFilePath) {
 
-  let success = false;
+  const filePath = _getLangConfigPaths().get(langConfigFilePath);
 
-  // The loop itself is already cheap. vscode.extensions.all is an in-memory array, typically 100-300 entries, and packageJSON has already been parsed. Walking it with property checks takes well under a millisecond. The only slow parts are the fs.existsSync and readFileSync calls, and those run only for the match. You won't notice a difference when running a command.
+  if (filePath) {
+    await vscode.window.showTextDocument(vscode.Uri.file(filePath));
+    await vscode.commands.executeCommand('editor.action.formatDocument');
+  }
+  else vscode.window.showInformationMessage(`Could not find a language configuration file for "${langConfigFilePath}".`);
+}
+
+
+/** @type {Map<string, string> | null} - language id -> absolute path of its language-configuration.json */
+let _langConfigPaths = null;
+
+/**
+ * Build the language id -> configuration file path Map on first use, then reuse it.
+ * @returns {Map<string, string>}
+ */
+function _getLangConfigPaths() {
+
+  if (_langConfigPaths) return _langConfigPaths;
+
+  _langConfigPaths = new Map();
+
+  // "languages" to skip, like plaintext, etc. = no configuration properties that we are interested in
+  const skipLangs = _getLanguagesToSkip();
 
   for (const _ext of vscode.extensions.all) {
 
-    if (_ext.packageJSON.contributes && _ext.packageJSON.contributes.languages) {
+    const contributedLanguages = _ext.packageJSON.contributes?.languages;  // may be an array
+    if (!contributedLanguages) continue;  // most extensions
 
-      const packageLang = _ext.packageJSON.contributes.languages; // could be an array
+    for (const lang of contributedLanguages) {
 
-      for (const lang of packageLang) {
+      // several extensions may contribute the same language id, the first one with an existing configuration file wins
+      if (!lang.configuration || skipLangs.includes(lang.id) || _langConfigPaths.has(lang.id)) continue;
 
-        // several extensions may contribute the same language id, not all with a configuration file
-        if (lang.id === langConfigFilePath && lang.configuration) {
-
-          let filePath = path.join(_ext.extensionPath, lang.configuration);
-
-          if (fs.existsSync(filePath)) {
-            await vscode.window.showTextDocument(vscode.Uri.file(filePath));
-            await vscode.commands.executeCommand('editor.action.formatDocument');
-            success = true;
-            break;
-          }
-        }
-      };
+      const filePath = path.join(_ext.extensionPath, lang.configuration);
+      if (fs.existsSync(filePath)) _langConfigPaths.set(lang.id, filePath);
     }
-
-    if (success) break;
   }
-
-  if (!success) vscode.window.showInformationMessage(`Could not find a language configuration file for "${langConfigFilePath}".`);
+  return _langConfigPaths;
 }
+
+/**
+ * Drop the cached Map so the next use rebuilds it, e.g. after extensions are installed or removed
+ */
+exports.clearLangConfigPathsCache = function () {
+  _langConfigPaths = null;
+};
 
 
 /**

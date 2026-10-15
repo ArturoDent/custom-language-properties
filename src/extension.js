@@ -42,7 +42,8 @@ async function activate(context) {
   // ---------------------------------------------------------------------------------------------------------
 
   disposable = vscode.commands.registerCommand('custom-language-syntax.rebuildConfigFiles', async function () {
-    
+
+    makeFiles.clearLangConfigPathsCache();  // always rescan the extensions on an explicit rebuild
     const newLangs = await makeFiles.getLanguageConfigFiles(context, extConfigDirectory);
     
     await makeFiles.reduceFiles(context, extConfigDirectory, extLangPropDirectory);
@@ -67,6 +68,9 @@ async function activate(context) {
       
   });
   context.subscriptions.push(disposable);
+
+  // extensions installed, removed, enabled or disabled: rebuild the language config Map on next use
+  context.subscriptions.push(vscode.extensions.onDidChange(makeFiles.clearLangConfigPathsCache));
 
   // the setLanguageConfiguration() disposables are owned by extensionSettings.js
   context.subscriptions.push({ dispose: extSettings.disposeConfigs });
