@@ -1,0 +1,3 @@
+TEST_VERBOSE=1 shows everything, for when you need to debug VS Code itself. 
+
+In bash: TEST_VERBOSE=1 npm test.
